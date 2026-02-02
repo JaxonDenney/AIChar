@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Civic Verification Bureau: Jaxon Denney</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0a0a0c;
+            color: #a0a0a0;
+            background-image: 
+                linear-gradient(rgba(10, 10, 12, 0.95), rgba(10, 10, 12, 0.95)),
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+        
+        .mono {
+            font-family: 'Share Tech Mono', monospace;
+        }
+
+        .scan-line {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 170, 0.02) 51%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        /* ID Card Specific Styles */
+        .id-card-glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 
+                0 0 20px rgba(0, 0, 0, 0.5),
+                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .id-card-glass::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                45deg,
+                transparent,
+                rgba(255, 255, 255, 0.05),
+                transparent
+            );
+            transform: rotate(45deg);
+            animation: holographic-sheen 6s infinite linear;
+        }
+
+        @keyframes holographic-sheen {
+            0% { transform: translateY(-100%) rotate(45deg); }
+            100% { transform: translateY(100%) rotate(45deg); }
+        }
+
+        .holo-chip {
+            background: linear-gradient(135deg, #ffd700, #b8860b);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .holo-chip::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+            transform: skewX(-20deg) translateX(-150%);
+            animation: chip-shine 3s infinite;
+        }
+
+        @keyframes chip-shine {
+            0%, 80% { transform: skewX(-20deg) translateX(-150%); }
+            100% { transform: skewX(-20deg) translateX(150%); }
+        }
+
+        .terminal-cursor::after {
+            content: '_';
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8 selection:bg-teal-900 selection:text-teal-100">
+
+    <div class="scan-line"></div>
+
+    <div class="max-w-4xl mx-auto space-y-8">
+        
+        <!-- Header / Status Bar -->
+        <header class="flex justify-between items-end border-b border-gray-800 pb-4">
+            <div>
+                <h1 class="text-3xl md:text-5xl font-bold text-gray-100 tracking-tighter uppercase">Personnel File</h1>
+                <p class="mono text-teal-500 text-sm mt-1">SECURE TERMINAL // ACCESS GRANTED</p>
+            </div>
+            <div class="text-right hidden md:block">
+                <div class="text-xs text-gray-500 mono">DATE: 02.04.2040</div>
+                <div class="text-xs text-gray-500 mono">LOC: BIRMINGHAM SECURE ZONE</div>
+            </div>
+        </header>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+            
+            <!-- Left Column: ID Card & Vitals -->
+            <div class="md:col-span-5 space-y-6">
+                
+                <!-- ID Card Visual Component -->
+                <div class="id-card-glass rounded-xl p-4 w-full aspect-[1.58/1] flex flex-col justify-between relative group">
+                    <!-- Top Bar -->
+                    <div class="flex justify-between items-start z-10">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] text-gray-400 tracking-widest uppercase">Issued By</span>
+                            <span class="text-xs font-bold text-gray-200">CIVIC VERIFICATION BUREAU</span>
+                        </div>
+                        <!-- Microchip -->
+                        <div class="holo-chip w-10 h-8 rounded border border-yellow-600/50 shadow-lg"></div>
+                    </div>
+
+                    <!-- Middle Content -->
+                    <div class="flex gap-4 items-center z-10 mt-2">
+                        <!-- Photo Placeholder -->
+                        <div class="w-20 h-24 bg-gray-800 border border-gray-600 rounded overflow-hidden relative grayscale contrast-125">
+                            <img src="https://as2.ftcdn.net/jpg/04/78/45/07/1000_F_478450717_bNgoSpM4NZACVdQ0P26sJofHRw8ZT5lU.jpg" alt="Jaxon Denney" class="w-full h-full object-cover opacity-80 mix-blend-overlay">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        </div>
+                        <div class="flex flex-col">
+                            <h2 class="text-xl font-bold text-white uppercase tracking-tight leading-none">DENNEY, JAXON</h2>
+                            <span class="text-xs text-red-500 font-bold mt-1 tracking-widest border border-red-900/50 bg-red-900/10 px-1 w-fit rounded">VERIFIED HUMAN</span>
+                            <span class="text-[10px] text-gray-400 mt-2 mono">ID: 8492-JD-40</span>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Bar -->
+                    <div class="border-t border-white/10 pt-2 flex justify-between items-end z-10">
+                        <div>
+                            <span class="block text-[8px] text-gray-500 uppercase">Clearance</span>
+                            <span class="text-xs text-teal-400 font-mono">ANALOG-TIER 1</span>
+                        </div>
+                        <div class="text-right">
+                             <!-- Fake QR Code -->
+                            <div class="w-8 h-8 bg-white p-0.5 opacity-80">
+                                <div class="w-full h-full bg-black" style="mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHBhdGggZD0iTTAgMGgzdjNIMHptNSAwaDJ2MmgydjNoLTFWM0g1em01IDB2M2gtMnYyaDJ2NWgtMXYtMmgtMXYyaC0xVjhoLTF2MmgtMXYtMmgtMXYySDBWN2gxdjFoMXYtMmgtMVY1SDBWMGgzdjNoLTFWM2gydjJoMXYtMmgxeiIvPjwvc3ZnPg=='); mask-size: cover;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Holographic Overlay Texture -->
+                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 mix-blend-overlay z-0"></div>
+                </div>
+
+                <!-- Basic Stats -->
+                <div class="bg-gray-900/50 border border-gray-800 p-4 rounded-lg">
+                    <h3 class="text-teal-500 text-xs font-bold uppercase tracking-widest mb-3 border-b border-gray-800 pb-1">Vitals</h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Name</span>
+                            <span class="mono text-gray-300">Jaxon Denney</span>
+                        </div>
+                         <div class="flex justify-between">
+                            <span class="text-gray-500">Born</span>
+                            <span class="mono text-gray-300">2009 (Age 31)</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Status</span>
+                            <span class="mono text-green-500">Active / Organic</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-500">Location</span>
+                            <span class="mono text-gray-300">Birmingham Safe-Zone, Sector 4</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Narrative Data -->
+            <div class="md:col-span-7 space-y-8">
+                
+                <section>
+                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-2">
+                        <span class="w-2 h-2 bg-teal-500 mr-2 rounded-full"></span>
+                        My Situation: Work & Isolation
+                    </h3>
+                    <div class="pl-4 border-l border-gray-800">
+                        <p class="text-gray-300 leading-relaxed">
+                             My job was taken over by AI. It’s a common story these days—if a task involves processing data or digital creation, a bot does it faster and cheaper than I ever could. I spend most of my time alone now, trying to figure out what "value" I have in a world that doesn't need my professional skills anymore.
+                        </p>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-2">
+                        <span class="w-2 h-2 bg-gray-700 mr-2 rounded-full"></span>
+                        Technology & The Trust Gap
+                    </h3>
+                    <div class="pl-4 border-l border-gray-800 space-y-3">
+                         <p class="text-gray-300 leading-relaxed">
+                            The technology I use every day is strictly functional. I’ve moved away from "smart" everything because if it has a connection, it’s being flooded with AI-generated noise and misinformation. My trust in the internet is at zero. You can’t tell if a video is a real person or a deepfake, or if a news article was written by a human or a bot farm.
+                        </p>
+                         <div class="mt-4 bg-red-900/10 border border-red-900/30 p-3 rounded">
+                            <h4 class="text-red-400 text-xs font-bold uppercase mb-1">Active Protocol: Analog Verification</h4>
+                            <p class="text-sm text-gray-400">
+                                I don't believe news unless I see it in a physical medium or hear it from a verified human source in person.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-2">
+                        <span class="w-2 h-2 bg-gray-700 mr-2 rounded-full"></span>
+                        Protocols & Relations
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="bg-gray-900/30 p-4 border border-gray-800 rounded">
+                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Primary Contact</h4>
+                            <p class="text-gray-200">Sarah Denney (Sister)</p>
+                            <p class="text-xs text-gray-500 mt-1">Huntsville Agricultural District</p>
+                            <div class="mt-3 text-xs mono text-teal-600 border-t border-gray-800 pt-2">
+                                ENCRYPTED MESH NETWORK ONLY
+                            </div>
+                        </div>
+                        <div class="bg-gray-900/30 p-4 border border-gray-800 rounded">
+                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">The "Handshake" Protocol</h4>
+                            <p class="text-sm text-gray-400 leading-snug">
+                                For the people most important to me—my family—we don't use standard messaging apps. We use localized, encrypted mesh networks that only work over short distances, and we have "analog passphrases" we only exchange in person to prove we aren't AI clones.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                 <section>
+                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-2">
+                        <span class="w-2 h-2 bg-blue-500 mr-2 rounded-full"></span>
+                        A World Changed
+                    </h3>
+                    <div class="pl-4 border-l border-gray-800">
+                        <p class="text-gray-300 leading-relaxed italic">
+                            "Everything feels fabricated."
+                        </p>
+                        <p class="text-sm text-gray-400 mt-2">
+                            The world has changed for the worse in terms of connection. However, it’s changed for the better in one small way: it’s forced us to value the physical world again. If I want to know how a friend is doing, I have to actually go see them. You can't fake a handshake yet.
+                        </p>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <footer class="text-center border-t border-gray-800 pt-8 mt-8">
+             <p class="mono text-xs text-gray-600">
+                 SYSTEM END OF FILE <span class="terminal-cursor"></span>
+             </p>
+        </footer>
+
+    </div>
+</body>
+</html>

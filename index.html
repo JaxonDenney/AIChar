@@ -7,270 +7,456 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #00ffaa;
+            --secondary: #0088ff;
+            --alert: #ff3333;
+            --bg-dark: #050505;
+            --scan-color: rgba(0, 255, 170, 0.03);
+        }
+
         body {
             font-family: 'Rajdhani', sans-serif;
-            background-color: #0a0a0c;
+            background-color: var(--bg-dark);
             color: #a0a0a0;
+            overflow-x: hidden;
             background-image: 
-                linear-gradient(rgba(10, 10, 12, 0.95), rgba(10, 10, 12, 0.95)),
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23222' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+                radial-gradient(circle at 50% 50%, #111 0%, #050505 100%),
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
         }
         
-        .mono {
-            font-family: 'Share Tech Mono', monospace;
-        }
+        .mono { font-family: 'Share Tech Mono', monospace; }
 
-        .scan-line {
+        /* CRT Scanline & Vignette */
+        .crt::before {
+            content: " ";
+            display: block;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom, transparent 50%, rgba(0, 255, 170, 0.02) 51%);
-            background-size: 100% 4px;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
             pointer-events: none;
-            z-index: 50;
+        }
+        
+        .crt::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.4) 100%);
+            z-index: 2;
+            pointer-events: none;
         }
 
-        /* ID Card Specific Styles */
+        /* 3D ID Card */
+        .id-card-container {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+        }
+        
         .id-card-glass {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(20, 20, 25, 0.6);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 
-                0 0 20px rgba(0, 0, 0, 0.5),
-                inset 0 0 0 1px rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .id-card-glass::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent,
-                rgba(255, 255, 255, 0.05),
-                transparent
-            );
-            transform: rotate(45deg);
-            animation: holographic-sheen 6s infinite linear;
-        }
-
-        @keyframes holographic-sheen {
-            0% { transform: translateY(-100%) rotate(45deg); }
-            100% { transform: translateY(100%) rotate(45deg); }
-        }
-
-        .holo-chip {
-            background: linear-gradient(135deg, #ffd700, #b8860b);
-            position: relative;
-            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transition: transform 0.1s ease-out; /* Smoother for JS control */
+            transform-style: preserve-3d;
+            will-change: transform;
         }
         
-        .holo-chip::after {
+        /* Holographic Shine */
+        .id-card-glass::after {
             content: '';
             position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(125deg, transparent 30%, rgba(255,255,255,0.15) 45%, transparent 60%);
+            background-size: 200% 200%;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            mix-blend-mode: overlay;
+        }
+
+        .id-card-container:hover .id-card-glass::after {
+            opacity: 1;
+        }
+
+        .id-content-layer {
+            transform: translateZ(20px); /* Parallax effect */
+        }
+        
+        .id-bg-layer {
+            transform: translateZ(0px);
+        }
+
+        /* Boot Sequence Overlay */
+        #boot-screen {
+            position: fixed;
             inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-            transform: skewX(-20deg) translateX(-150%);
-            animation: chip-shine 3s infinite;
+            background: #000;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--primary);
         }
 
-        @keyframes chip-shine {
-            0%, 80% { transform: skewX(-20deg) translateX(-150%); }
-            100% { transform: skewX(-20deg) translateX(150%); }
+        /* Hacker Text Effect Classes */
+        .hacker-text {
+            cursor: default;
         }
 
-        .terminal-cursor::after {
-            content: '_';
-            animation: blink 1s step-end infinite;
+        /* Connection Signal Bar */
+        .signal-bar {
+            width: 3px;
+            background-color: #333;
+            margin-right: 2px;
+            display: inline-block;
         }
+        .signal-active { background-color: var(--primary); }
+        .signal-weak { background-color: var(--alert); }
 
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0c; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
     </style>
 </head>
-<body class="min-h-screen p-4 md:p-8 selection:bg-teal-900 selection:text-teal-100">
+<body class="crt min-h-screen p-4 md:p-8 selection:bg-teal-900 selection:text-teal-100">
 
-    <div class="scan-line"></div>
+    <!-- Boot Sequence -->
+    <div id="boot-screen">
+        <div class="text-xl tracking-widest mb-4">SYSTEM BOOT_SEQ // v.4.0.2</div>
+        <div id="boot-log" class="text-xs text-green-500/70 font-mono h-32 overflow-hidden w-64 border-t border-b border-green-900/50 py-2"></div>
+        <div class="mt-4 w-64 h-1 bg-gray-900 rounded overflow-hidden">
+            <div id="boot-progress" class="h-full bg-teal-500 w-0 transition-all duration-300"></div>
+        </div>
+    </div>
 
-    <div class="max-w-4xl mx-auto space-y-8">
+    <div class="max-w-6xl mx-auto space-y-8 relative z-10 opacity-0 transition-opacity duration-1000" id="main-content">
         
-        <!-- Header / Status Bar -->
-        <header class="flex justify-between items-end border-b border-gray-800 pb-4">
+        <!-- Header -->
+        <header class="flex flex-col md:flex-row justify-between items-end border-b border-gray-800 pb-4 relative group">
+            <div class="absolute bottom-0 left-0 w-0 group-hover:w-full h-[1px] bg-gradient-to-r from-teal-500 via-blue-500 to-teal-500 transition-all duration-1000 shadow-[0_0_15px_#00ffaa]"></div>
             <div>
-                <h1 class="text-3xl md:text-5xl font-bold text-gray-100 tracking-tighter uppercase">Personnel File</h1>
-                <p class="mono text-teal-500 text-sm mt-1">SECURE TERMINAL // ACCESS GRANTED</p>
+                <h1 class="text-5xl md:text-7xl font-bold text-gray-100 tracking-tighter uppercase hacker-text" data-value="PERSONNEL FILE">PERSONNEL FILE</h1>
+                <p class="mono text-teal-500 text-sm mt-1 flex items-center">
+                    <span class="w-2 h-2 bg-teal-500 rounded-full mr-2 animate-pulse shadow-[0_0_8px_#00ffaa]"></span>
+                    SECURE TERMINAL // ACCESS GRANTED
+                </p>
             </div>
-            <div class="text-right hidden md:block">
-                <div class="text-xs text-gray-500 mono">DATE: 02.04.2040</div>
-                <div class="text-xs text-gray-500 mono">LOC: BIRMINGHAM SECURE ZONE</div>
+            <div class="text-right hidden md:block opacity-80 font-mono text-xs text-gray-500 space-y-1">
+                <div id="live-clock">TIME: --:--:--</div>
+                <div>LOC: BIRMINGHAM SECURE ZONE</div>
+                <div class="flex items-center justify-end">
+                    <span class="mr-2">NET_STATUS:</span>
+                    <div class="flex items-end h-3">
+                        <span class="signal-bar h-1 signal-active"></span>
+                        <span class="signal-bar h-2 signal-active"></span>
+                        <span class="signal-bar h-3 signal-active"></span>
+                        <span class="signal-bar h-2 bg-gray-700 animate-pulse"></span> <!-- Simulating signal fluctuation -->
+                    </div>
+                </div>
             </div>
         </header>
 
         <!-- Main Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
             
-            <!-- Left Column: ID Card & Vitals -->
-            <div class="md:col-span-5 space-y-6">
+            <!-- Left Column: ID & Stats -->
+            <div class="lg:col-span-5 space-y-8">
                 
-                <!-- ID Card Visual Component -->
-                <div class="id-card-glass rounded-xl p-4 w-full aspect-[1.58/1] flex flex-col justify-between relative group">
-                    <!-- Top Bar -->
-                    <div class="flex justify-between items-start z-10">
-                        <div class="flex flex-col">
-                            <span class="text-[10px] text-gray-400 tracking-widest uppercase">Issued By</span>
-                            <span class="text-xs font-bold text-gray-200">CIVIC VERIFICATION BUREAU</span>
-                        </div>
-                        <!-- Microchip -->
-                        <div class="holo-chip w-10 h-8 rounded border border-yellow-600/50 shadow-lg"></div>
-                    </div>
+                <!-- ID Card Container -->
+                <div class="id-card-container h-[350px] w-full relative" id="id-card-wrap">
+                    <div class="id-card-glass rounded-xl p-5 w-full h-full flex flex-col justify-between relative overflow-hidden transition-all" id="id-card">
+                        
+                        <!-- Decorative Hologram Overlay (CSS generated) -->
+                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay z-0"></div>
 
-                    <!-- Middle Content -->
-                    <div class="flex gap-4 items-center z-10 mt-2">
-                        <!-- Photo Placeholder -->
-                        <div class="w-20 h-24 bg-gray-800 border border-gray-600 rounded overflow-hidden relative grayscale contrast-125">
-                            <img src="https://as2.ftcdn.net/jpg/04/78/45/07/1000_F_478450717_bNgoSpM4NZACVdQ0P26sJofHRw8ZT5lU.jpg" alt="Jaxon Denney" class="w-full h-full object-cover">
-                            <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                        <!-- Top Bar -->
+                        <div class="flex justify-between items-start z-10 id-content-layer">
+                            <div class="flex flex-col">
+                                <span class="text-[9px] text-gray-400 tracking-[0.3em] uppercase">Issued Authority</span>
+                                <span class="text-xs font-bold text-gray-100 tracking-wide">CIVIC VERIFICATION BUREAU</span>
+                            </div>
+                            <!-- Microchip -->
+                            <div class="w-12 h-9 rounded border border-yellow-600/60 bg-gradient-to-br from-yellow-800/40 to-yellow-600/10 flex items-center justify-center relative overflow-hidden shadow-lg">
+                                <div class="absolute inset-0 bg-yellow-400/20 animate-pulse"></div>
+                                <div class="grid grid-cols-2 gap-1 w-full h-full p-1 opacity-60">
+                                    <div class="border-r border-yellow-600/50"></div>
+                                    <div></div>
+                                    <div class="border-r border-t border-yellow-600/50"></div>
+                                    <div class="border-t border-yellow-600/50"></div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex flex-col">
-                            <h2 class="text-xl font-bold text-white uppercase tracking-tight leading-none">DENNEY, JAXON</h2>
-                            <span class="text-xs text-red-500 font-bold mt-1 tracking-widest border border-red-900/50 bg-red-900/10 px-1 w-fit rounded">VERIFIED HUMAN</span>
-                            <span class="text-[10px] text-gray-400 mt-2 mono">ID: 8492-JD-40</span>
-                        </div>
-                    </div>
 
-                    <!-- Bottom Bar -->
-                    <div class="border-t border-white/10 pt-2 flex justify-between items-end z-10">
-                        <div>
-                            <span class="block text-[8px] text-gray-500 uppercase">Clearance</span>
-                            <span class="text-xs text-teal-400 font-mono">ANALOG-TIER 1</span>
+                        <!-- Middle Content -->
+                        <div class="flex gap-5 items-center z-10 mt-2 id-content-layer">
+                            <!-- Photo Area -->
+                            <div class="w-28 h-36 bg-gray-900 border border-gray-600/50 rounded-sm overflow-hidden relative shadow-[0_0_15px_rgba(0,0,0,0.5)] group">
+                                <!-- PLACEHOLDER IMAGE -->
+                                <img src="https://as2.ftcdn.net/jpg/04/78/45/07/1000_F_478450717_bNgoSpM4NZACVdQ0P26sJofHRw8ZT5lU.jpg" alt="Jaxon Denney" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
+                                
+                                <!-- Holographic Sticker Overlay -->
+                                <div class="absolute top-2 right-2 w-8 h-8 rounded-full border border-white/20 flex items-center justify-center opacity-50">
+                                    <div class="w-6 h-6 border border-white/20 rounded-full"></div>
+                                </div>
+                                
+                                <!-- Scanline -->
+                                <div class="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.4)_50%)] bg-[length:100%_4px] pointer-events-none opacity-40"></div>
+                            </div>
+                            
+                            <div class="flex flex-col h-36 justify-between py-1">
+                                <div>
+                                    <h2 class="text-3xl font-bold text-white uppercase tracking-tight leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hacker-text" data-value="DENNEY">DENNEY</h2>
+                                    <h2 class="text-3xl font-bold text-white uppercase tracking-tight leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hacker-text mb-2" data-value="JAXON">JAXON</h2>
+                                    <span class="text-[10px] text-gray-400 mono bg-black/40 px-1">ID: 8492-JD-40</span>
+                                </div>
+                                <div class="relative">
+                                    <div class="absolute inset-0 bg-red-600 blur-md opacity-40"></div>
+                                    <span class="relative text-xs text-red-100 font-bold tracking-widest bg-gradient-to-r from-red-700 to-red-600 px-3 py-1 rounded-sm shadow-lg border border-red-500/30 inline-block">VERIFIED HUMAN</span>
+                                </div>
+                            </div>
                         </div>
-                        <div class="text-right">
-                             <!-- Fake QR Code -->
-                            <div class="w-8 h-8 bg-white p-0.5 opacity-80">
-                                <div class="w-full h-full bg-black" style="mask-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMCAxMCI+PHBhdGggZD0iTTAgMGgzdjNIMHptNSAwaDJ2MmgydjNoLTFWM0g1em01IDB2M2gtMnYyaDJ2NWgtMXYtMmgtMXYyaC0xVjhoLTF2MmgtMXYtMmgtMXYySDBWN2gxdjFoMXYtMmgtMVY1SDBWMGgzdjNoLTFWM2gydjJoMXYtMmgxeiIvPjwvc3ZnPg=='); mask-size: cover;"></div>
+
+                        <!-- Bottom Bar -->
+                        <div class="border-t border-white/10 pt-3 flex justify-between items-end z-10 id-content-layer">
+                            <div>
+                                <span class="block text-[8px] text-gray-500 uppercase tracking-wider">Security Clearance</span>
+                                <span class="text-sm text-teal-400 font-mono tracking-wide drop-shadow-[0_0_5px_rgba(45,212,191,0.6)]">ANALOG-TIER 1</span>
+                            </div>
+                            <!-- Barcode Representation -->
+                            <div class="h-6 flex items-end opacity-70 gap-[2px]">
+                                <div class="w-1 h-full bg-white"></div>
+                                <div class="w-[2px] h-4 bg-white"></div>
+                                <div class="w-[3px] h-full bg-white"></div>
+                                <div class="w-[1px] h-5 bg-white"></div>
+                                <div class="w-[4px] h-full bg-white"></div>
                             </div>
                         </div>
                     </div>
-
-                    <!-- Holographic Overlay Texture -->
-                    <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/diagmonds-light.png')] opacity-10 mix-blend-overlay z-0"></div>
                 </div>
 
-                <!-- Basic Stats -->
-                <div class="bg-gray-900/50 border border-gray-800 p-4 rounded-lg">
-                    <h3 class="text-teal-500 text-xs font-bold uppercase tracking-widest mb-3 border-b border-gray-800 pb-1">Vitals</h3>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Name</span>
-                            <span class="mono text-gray-300">Jaxon Denney</span>
+                <!-- Stats Panel -->
+                <div class="bg-gray-900/40 border border-gray-800 p-6 relative overflow-hidden group hover:border-teal-500/30 transition-colors duration-300">
+                    <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-teal-500/5 to-transparent"></div>
+                    
+                    <h3 class="text-teal-500 text-xs font-bold uppercase tracking-[0.2em] mb-4 flex items-center">
+                        <svg class="w-3 h-3 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+                        Subject Biometrics
+                    </h3>
+                    <dl class="space-y-4 text-sm">
+                        <div class="flex justify-between border-b border-gray-800/50 pb-2">
+                            <dt class="text-gray-500 font-mono text-xs">FULL_NAME</dt>
+                            <dd class="text-gray-200 tracking-wide">Jaxon Denney</dd>
                         </div>
-                         <div class="flex justify-between">
-                            <span class="text-gray-500">Born</span>
-                            <span class="mono text-gray-300">2009 (Age 31)</span>
+                        <div class="flex justify-between border-b border-gray-800/50 pb-2">
+                            <dt class="text-gray-500 font-mono text-xs">DOB_YEAR</dt>
+                            <dd class="text-gray-200">2009 <span class="text-gray-600 text-xs">(AGE 31)</span></dd>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Status</span>
-                            <span class="mono text-green-500">Active / Organic</span>
+                        <div class="flex justify-between border-b border-gray-800/50 pb-2">
+                            <dt class="text-gray-500 font-mono text-xs">BIOLOGICAL_STATUS</dt>
+                            <dd class="text-green-400 flex items-center font-bold text-xs bg-green-900/20 px-2 py-0.5 rounded border border-green-900/50">
+                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-2 animate-pulse"></span>ORGANIC
+                            </dd>
                         </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-500">Location</span>
-                            <span class="mono text-gray-300">Birmingham Safe-Zone, Sector 4</span>
+                        <div class="flex justify-between pb-1">
+                            <dt class="text-gray-500 font-mono text-xs">ASSIGNED_ZONE</dt>
+                            <dd class="text-gray-200">Birmingham Sector 4</dd>
                         </div>
-                    </div>
+                    </dl>
                 </div>
 
             </div>
 
             <!-- Right Column: Narrative Data -->
-            <div class="md:col-span-7 space-y-8">
+            <div class="lg:col-span-7 space-y-10 pt-2">
                 
-                <section>
-                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-2">
-                        <span class="w-2 h-2 bg-teal-500 mr-2 rounded-full"></span>
-                        My Situation: Work & Isolation
+                <!-- Section 1 -->
+                <section class="group">
+                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-3 border-b border-gray-800 pb-2 hacker-text" data-value="01 // WORK & ISOLATION">
+                        01 // WORK & ISOLATION
                     </h3>
-                    <div class="pl-4 border-l border-gray-800">
+                    <div class="relative pl-4 border-l-2 border-gray-800 group-hover:border-teal-500 transition-colors duration-300">
                         <p class="text-gray-300 leading-relaxed">
-                             My job was taken over by AI. It’s a common story these days—if a task involves processing data or digital creation, a bot does it faster and cheaper than I ever could. I spend most of my time alone now, trying to figure out what "value" I have in a world that doesn't need my professional skills anymore.
+                            My job was taken over by AI. It’s a common story these days—if a task involves processing data or digital creation, a bot does it faster and cheaper. I spend most of my time alone now, trying to figure out what "value" I have in a world that doesn't need my professional skills anymore.
                         </p>
                     </div>
                 </section>
 
-                <section>
-                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-2">
-                        <span class="w-2 h-2 bg-gray-700 mr-2 rounded-full"></span>
-                        Technology & The Trust Gap
+                <!-- Section 2 -->
+                <section class="group">
+                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-3 border-b border-gray-800 pb-2 hacker-text" data-value="02 // TECH & TRUST">
+                        02 // TECH & TRUST
                     </h3>
-                    <div class="pl-4 border-l border-gray-800 space-y-3">
-                         <p class="text-gray-300 leading-relaxed">
-                            The technology I use every day is strictly functional. I’ve moved away from "smart" everything because if it has a connection, it’s being flooded with AI-generated noise and misinformation. My trust in the internet is at zero. You can’t tell if a video is a real person or a deepfake, or if a news article was written by a human or a bot farm.
+                    <div class="pl-4 border-l-2 border-gray-800 group-hover:border-red-500 transition-colors duration-300 space-y-4">
+                        <p class="text-gray-300 leading-relaxed">
+                            I use strictly functional tech. No "smart" devices. If it has a connection, it’s flooded with AI noise. My trust in the internet is at <strong class="text-red-400">zero</strong>. You can’t tell if a video is real or a deepfake, or if a news article was written by a bot farm.
                         </p>
-                         <div class="mt-4 bg-red-900/10 border border-red-900/30 p-3 rounded">
-                            <h4 class="text-red-400 text-xs font-bold uppercase mb-1">Active Protocol: Analog Verification</h4>
-                            <p class="text-sm text-gray-400">
-                                I don't believe news unless I see it in a physical medium or hear it from a verified human source in person.
-                            </p>
-                        </div>
-                    </div>
-                </section>
-
-                <section>
-                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-2">
-                        <span class="w-2 h-2 bg-gray-700 mr-2 rounded-full"></span>
-                        Protocols & Relations
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-gray-900/30 p-4 border border-gray-800 rounded">
-                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">Primary Contact</h4>
-                            <p class="text-gray-200">Sarah Denney (Sister)</p>
-                            <p class="text-xs text-gray-500 mt-1">Huntsville Agricultural District</p>
-                            <div class="mt-3 text-xs mono text-teal-600 border-t border-gray-800 pt-2">
-                                ENCRYPTED MESH NETWORK ONLY
+                        <!-- Warning Box -->
+                        <div class="bg-red-950/20 border border-red-900/40 p-4 rounded flex items-start gap-4 hover:bg-red-950/30 transition-colors cursor-help group/alert">
+                            <div class="text-red-500 text-xl mt-0.5 animate-pulse">⚠️</div>
+                            <div>
+                                <h4 class="text-red-400 text-xs font-bold uppercase tracking-wide mb-1 group-hover/alert:text-red-300">Active Protocol: Analog Verification</h4>
+                                <p class="text-sm text-gray-400 font-mono border-l-2 border-red-900/50 pl-2">
+                                    "I don't believe news unless I see it in a physical medium or hear it from a verified human source in person."
+                                </p>
                             </div>
                         </div>
-                        <div class="bg-gray-900/30 p-4 border border-gray-800 rounded">
-                            <h4 class="text-xs font-bold text-gray-500 uppercase mb-2">The "Handshake" Protocol</h4>
-                            <p class="text-sm text-gray-400 leading-snug">
-                                For the people most important to me—my family—we don't use standard messaging apps. We use localized, encrypted mesh networks that only work over short distances, and we have "analog passphrases" we only exchange in person to prove we aren't AI clones.
-                            </p>
+                    </div>
+                </section>
+
+                <!-- Section 3 -->
+                <section class="group">
+                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-3 border-b border-gray-800 pb-2 hacker-text" data-value="03 // RELATIONS">
+                         03 // RELATIONS
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Contact Card -->
+                        <div class="bg-gray-900/30 p-4 border border-gray-800 rounded hover:bg-gray-800 transition-all hover:scale-[1.02] cursor-pointer group/card relative overflow-hidden">
+                             <div class="absolute inset-0 bg-green-500/5 translate-y-full group-hover/card:translate-y-0 transition-transform duration-300"></div>
+                            <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-widest">Primary Contact</h4>
+                            <div class="flex items-center mb-1">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2 shadow-[0_0_5px_lime]"></div>
+                                <span class="text-gray-100 font-bold tracking-wide">Sarah Denney (Sister)</span>
+                            </div>
+                            <p class="text-xs text-gray-500 ml-4 font-mono">LOC: Huntsville Ag-District</p>
+                        </div>
+
+                        <!-- Protocol Card -->
+                        <div class="bg-gray-900/30 p-4 border border-gray-800 rounded hover:bg-gray-800 transition-all hover:scale-[1.02] cursor-pointer group/card relative overflow-hidden">
+                            <div class="absolute inset-0 bg-teal-500/5 translate-y-full group-hover/card:translate-y-0 transition-transform duration-300"></div>
+                            <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-widest">Comm Method</h4>
+                            <p class="text-sm text-teal-400 font-mono font-bold">"THE HANDSHAKE"</p>
+                            <p class="text-xs text-gray-400 mt-1 leading-tight">Localized mesh networks. Analog passphrases exchanged in person only.</p>
                         </div>
                     </div>
                 </section>
 
-                 <section>
-                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-2">
-                        <span class="w-2 h-2 bg-blue-500 mr-2 rounded-full"></span>
-                        A World Changed
+                <!-- Section 4 -->
+                <section class="group">
+                     <h3 class="flex items-center text-teal-500 font-mono text-lg mb-3 border-b border-gray-800 pb-2 hacker-text" data-value="04 // REFLECTION">
+                        04 // REFLECTION
                     </h3>
-                    <div class="pl-4 border-l border-gray-800">
-                        <p class="text-gray-300 leading-relaxed italic">
-                            "Everything feels fabricated."
-                        </p>
-                        <p class="text-sm text-gray-400 mt-2">
-                            The world has changed for the worse in terms of connection. However, it’s changed for the better in one small way: it’s forced us to value the physical world again. If I want to know how a friend is doing, I have to actually go see them. You can't fake a handshake yet.
-                        </p>
-                    </div>
+                    <p class="text-gray-400 italic pl-4 border-l-2 border-gray-800 group-hover:border-blue-500 transition-colors duration-300 text-lg">
+                        "Everything feels fabricated. But it’s forced us to value the physical world. If I want to know how a friend is doing, I have to actually go see them. <span class="text-gray-200 not-italic font-bold">You can't fake a handshake yet.</span>"
+                    </p>
                 </section>
 
             </div>
         </div>
         
         <!-- Footer -->
-        <footer class="text-center border-t border-gray-800 pt-8 mt-8">
-             <p class="mono text-xs text-gray-600">
-                 SYSTEM END OF FILE <span class="terminal-cursor"></span>
+        <footer class="text-center border-t border-gray-800 pt-8 mt-12 pb-8 opacity-50">
+             <p class="mono text-[10px] text-gray-600 tracking-[0.3em]">
+                 CIVIC VERIFICATION BUREAU // END OF FILE <span class="animate-pulse">_</span>
              </p>
         </footer>
 
     </div>
+
+    <script>
+        /* --- 1. BOOT SEQUENCE LOGIC --- */
+        const bootScreen = document.getElementById('boot-screen');
+        const mainContent = document.getElementById('main-content');
+        const bootLog = document.getElementById('boot-log');
+        const bootProgress = document.getElementById('boot-progress');
+        
+        const logs = [
+            "INITIALIZING KERNEL...",
+            "CONNECTING TO SECURE_MESH...",
+            "BYPASSING AI_FILTER_V9...",
+            "VERIFYING HANDSHAKE TOKEN...",
+            "DECRYPTING BIOMETRICS...",
+            "RENDERING INTERFACE..."
+        ];
+
+        let delay = 0;
+        let progress = 0;
+
+        logs.forEach((log, index) => {
+            setTimeout(() => {
+                const div = document.createElement('div');
+                div.textContent = `> ${log}`;
+                bootLog.appendChild(div);
+                bootLog.scrollTop = bootLog.scrollHeight;
+                
+                progress += (100 / logs.length);
+                bootProgress.style.width = `${progress}%`;
+
+            }, delay);
+            delay += 250 + Math.random() * 300; 
+        });
+
+        setTimeout(() => {
+            bootScreen.style.opacity = '0';
+            bootScreen.style.pointerEvents = 'none';
+            mainContent.style.opacity = '1';
+        }, delay + 400);
+
+        /* --- 2. HACKER TEXT EFFECT --- */
+        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+        document.querySelectorAll(".hacker-text").forEach(element => {
+            element.onmouseover = event => {
+                let iteration = 0;
+                clearInterval(element.interval);
+                
+                element.interval = setInterval(() => {
+                    event.target.innerText = event.target.innerText
+                        .split("")
+                        .map((letter, index) => {
+                            if(index < iteration) {
+                                return event.target.dataset.value[index];
+                            }
+                            return letters[Math.floor(Math.random() * 26)];
+                        })
+                        .join("");
+                    
+                    if(iteration >= event.target.dataset.value.length){ 
+                        clearInterval(element.interval);
+                    }
+                    
+                    iteration += 1 / 3;
+                }, 30);
+            }
+        });
+
+        /* --- 3. 3D ID CARD TILT --- */
+        const cardContainer = document.getElementById('id-card-wrap');
+        const card = document.getElementById('id-card');
+
+        cardContainer.addEventListener('mousemove', (e) => {
+            const rect = cardContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Calculate rotation based on cursor position relative to center
+            const xRotation = -1 * ((y - rect.height/2) / 20); // Rotate X axis based on Y position
+            const yRotation = (x - rect.width/2) / 20;   // Rotate Y axis based on X position
+            
+            card.style.transform = `rotateX(${xRotation}deg) rotateY(${yRotation}deg) scale(1.02)`;
+        });
+
+        cardContainer.addEventListener('mouseleave', () => {
+            card.style.transform = 'rotateX(0) rotateY(0) scale(1)';
+        });
+
+        /* --- 4. LIVE CLOCK --- */
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { hour12: false });
+            document.getElementById('live-clock').innerText = `TIME: ${timeString}`;
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+    </script>
 </body>
 </html>

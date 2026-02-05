@@ -5,458 +5,664 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Civic Verification Bureau: Jaxon Denney</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&family=Brush+Script+MT&family=Special+Elite&family=Courier+Prime&family=Pixelify+Sans:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #00ffaa;
-            --secondary: #0088ff;
-            --alert: #ff3333;
-            --bg-dark: #050505;
-            --scan-color: rgba(0, 255, 170, 0.03);
+            --win-gray: #c0c0c0;
+            --win-blue: #000080;
+            --win-blue-light: #1084d0;
+            --win-text: #000000;
+            --win-light: #ffffff;
+            --win-dark: #808080;
+            --win-darker: #000000;
+            --desktop-teal: #008080;
         }
 
         body {
-            font-family: 'Rajdhani', sans-serif;
-            background-color: var(--bg-dark);
-            color: #a0a0a0;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 50% 50%, #111 0%, #050505 100%),
-                url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
-        }
-        
-        .mono { font-family: 'Share Tech Mono', monospace; }
-
-        /* CRT Scanline & Vignette */
-        .crt::before {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
-            pointer-events: none;
-        }
-        
-        .crt::after {
-            content: " ";
-            display: block;
-            position: fixed;
-            top: 0; left: 0; bottom: 0; right: 0;
-            background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.4) 100%);
-            z-index: 2;
-            pointer-events: none;
-        }
-
-        /* 3D ID Card */
-        .id-card-container {
-            perspective: 1000px;
-            transform-style: preserve-3d;
-        }
-        
-        .id-card-glass {
-            background: rgba(20, 20, 25, 0.6);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-            transition: transform 0.1s ease-out; /* Smoother for JS control */
-            transform-style: preserve-3d;
-            will-change: transform;
-        }
-        
-        /* Holographic Shine */
-        .id-card-glass::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: linear-gradient(125deg, transparent 30%, rgba(255,255,255,0.15) 45%, transparent 60%);
-            background-size: 200% 200%;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            mix-blend-mode: overlay;
-        }
-
-        .id-card-container:hover .id-card-glass::after {
-            opacity: 1;
-        }
-
-        .id-content-layer {
-            transform: translateZ(20px); /* Parallax effect */
-        }
-        
-        .id-bg-layer {
-            transform: translateZ(0px);
-        }
-
-        /* Boot Sequence Overlay */
-        #boot-screen {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            font-family: 'Share Tech Mono', monospace;
-            color: var(--primary);
-        }
-
-        /* Hacker Text Effect Classes */
-        .hacker-text {
+            font-family: 'Pixelify Sans', sans-serif;
+            background-color: var(--desktop-teal);
+            color: var(--win-text);
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
             cursor: default;
+            background-image: radial-gradient(#000 10%, transparent 11%), radial-gradient(#000 10%, transparent 11%);
+            background-size: 4px 4px;
         }
 
-        /* Connection Signal Bar */
-        .signal-bar {
-            width: 3px;
-            background-color: #333;
-            margin-right: 2px;
-            display: inline-block;
+        /* --- FONTS --- */
+        .handwritten { font-family: 'Brush Script MT', cursive; }
+        .typewriter { font-family: 'Special Elite', monospace; }
+        .courier { font-family: 'Courier Prime', monospace; }
+        .digital { font-family: 'VT323', monospace; }
+
+        /* --- SVG ICONS --- */
+        .icon-svg { width: 32px; height: 32px; display: block; shape-rendering: crispEdges; }
+        .icon-sm { width: 16px; height: 16px; }
+        .icon-md { width: 24px; height: 24px; }
+
+        /* --- WINDOW STYLES --- */
+        .window {
+            position: absolute;
+            background-color: var(--win-gray);
+            box-shadow: 1px 1px 0px var(--win-dark), 2px 2px 5px rgba(0,0,0,0.5);
+            border-top: 2px solid var(--win-light);
+            border-left: 2px solid var(--win-light);
+            border-right: 2px solid var(--win-darker);
+            border-bottom: 2px solid var(--win-darker);
+            display: flex; flex-direction: column;
         }
-        .signal-active { background-color: var(--primary); }
-        .signal-weak { background-color: var(--alert); }
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0a0a0c; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #555; }
+        .title-bar {
+            background: linear-gradient(90deg, var(--win-blue), var(--win-blue-light));
+            padding: 3px 4px; display: flex; justify-content: space-between; align-items: center;
+            color: white; font-weight: bold; font-size: 14px; letter-spacing: 0.5px;
+        }
+        
+        .window.active .title-bar { background: linear-gradient(90deg, var(--win-blue), #1084d0); }
+        .title-bar-controls { display: flex; gap: 2px; }
 
+        .win-btn {
+            width: 16px; height: 14px; background-color: var(--win-gray);
+            border-top: 1px solid var(--win-light); border-left: 1px solid var(--win-light);
+            border-right: 1px solid var(--win-darker); border-bottom: 1px solid var(--win-darker);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; color: black; font-family: sans-serif; font-weight: bold; cursor: pointer;
+        }
+        .win-btn:active { border: 1px solid var(--win-darker); border-bottom: 1px solid var(--win-light); }
+
+        /* --- ARTIFACTS --- */
+        .paper-scrap {
+            background-color: #fdfaf0;
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.3); border: 1px solid #d4d4d4; cursor: pointer;
+        }
+        .lined-paper {
+            background-color: #fff;
+            background-image: repeating-linear-gradient(transparent, transparent 27px, #99aab5 28px);
+            line-height: 28px; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); cursor: pointer;
+        }
+
+        /* --- 3D STORM & OVERLAYS --- */
+        .scanline {
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 3px 100%; pointer-events: none; z-index: 50;
+        }
+        .glitch { animation: glitch-anim 3s infinite linear alternate-reverse; }
+        
+        .verify-active #digitalPanel { filter: grayscale(100%) contrast(150%) brightness(30%); }
+        .verify-active #digitalOverlay { display: flex; }
+        .verify-active #analogStamp { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-12deg); }
+
+        /* --- LAYOUT UTILS --- */
+        .inset-panel {
+            background-color: white;
+            border: 2px solid; border-color: var(--win-dark) var(--win-light) var(--win-light) var(--win-dark);
+            overflow-y: auto;
+        }
+        
+        .sidebar-btn {
+            background-color: var(--win-gray);
+            border: 1px solid transparent; padding: 6px; margin-bottom: 4px; cursor: pointer;
+            text-align: left; display: flex; align-items: center; font-size: 12px; gap: 8px;
+        }
+        .sidebar-btn:hover { border: 1px outset white; }
+        .sidebar-btn.active { border: 1px inset white; background-color: #dfdfdf; font-weight: bold; }
+
+        /* --- DESKTOP & TASKBAR --- */
+        #desktop { position: fixed; inset: 0; z-index: 1; }
+        .desktop-icon {
+            position: absolute; width: 70px; display: flex; flex-direction: column; align-items: center;
+            color: white; text-shadow: 1px 1px 0px black; cursor: pointer; padding: 5px;
+        }
+        .desktop-icon:active, .desktop-icon.selected { border: 1px dotted white; background: rgba(0,0,128,0.5); }
+        
+        .taskbar {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 32px;
+            background-color: var(--win-gray); border-top: 2px solid var(--win-light);
+            display: flex; align-items: center; padding: 2px; z-index: 9000;
+        }
+        .start-btn {
+            display: flex; align-items: center; gap: 4px; padding: 2px 6px; margin-right: 8px;
+            background-color: var(--win-gray);
+            border-top: 2px solid var(--win-light); border-left: 2px solid var(--win-light);
+            border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+            font-weight: bold; cursor: pointer; font-size: 14px;
+        }
+        .task-entry {
+            height: 24px; padding: 0 8px; background: #c0c0c0; margin-right: 4px;
+            border-top: 2px solid var(--win-light); border-left: 2px solid var(--win-light);
+            border-right: 2px solid var(--win-darker); border-bottom: 2px solid var(--win-darker);
+            display: flex; align-items: center; gap: 4px; font-size: 12px; cursor: pointer;
+        }
+        .task-entry.active { background: #dfdfdf; border: 2px inset white; font-weight: bold; }
+        
+        /* --- 3D ID CARD --- */
+        .id-card-container { perspective: 1200px; transform-style: preserve-3d; }
+        .id-card-glass {
+            background: linear-gradient(135deg, #e0e0e0, #ffffff);
+            border: 1px solid #999; box-shadow: 2px 2px 10px rgba(0,0,0,0.3);
+            transform-style: preserve-3d; transition: transform 0.1s ease-out;
+            will-change: transform; position: relative;
+        }
+        .id-content-layer { transform: translateZ(20px); }
+
+        /* OVERLAYS */
+        .fullscreen-overlay { position: fixed; inset: 0; z-index: 9999; font-family: 'VT323', monospace; display: none; }
+        #bios-screen { background: black; color: #c0c0c0; padding: 40px; font-size: 20px; display: flex; flex-direction: column; }
+        #bsod-screen { background: #0000AA; color: white; padding: 10% 20%; font-size: 18px; text-align: center; }
+        
+        /* CHAT */
+        .chat-msg { margin-bottom: 4px; }
+        .chat-sys { color: #00ffff; font-weight: bold; } 
+        .chat-user { color: #ff00ff; font-weight: bold; } 
+        .chat-sarah { color: #ffff00; font-weight: bold; } 
+        .dos-font { font-family: 'VT323', monospace; color: #00ff00; background: black; padding: 10px; }
     </style>
 </head>
-<body class="crt min-h-screen p-4 md:p-8 selection:bg-teal-900 selection:text-teal-100">
+<body>
 
-    <!-- Boot Sequence -->
-    <div id="boot-screen">
-        <div class="text-xl tracking-widest mb-4">SYSTEM BOOT_SEQ // v.4.0.2</div>
-        <div id="boot-log" class="text-xs text-green-500/70 font-mono h-32 overflow-hidden w-64 border-t border-b border-green-900/50 py-2"></div>
-        <div class="mt-4 w-64 h-1 bg-gray-900 rounded overflow-hidden">
-            <div id="boot-progress" class="h-full bg-teal-500 w-0 transition-all duration-300"></div>
+    <!-- SVG ICONS -->
+    <svg style="display: none;">
+        <symbol id="icon-mycomputer" viewBox="0 0 32 32">
+            <rect x="6" y="2" width="20" height="18" fill="#c0c0c0" stroke="black" stroke-width="1"/>
+            <rect x="8" y="4" width="16" height="14" fill="#008080"/>
+            <rect x="6" y="22" width="20" height="2" fill="#c0c0c0" stroke="black" stroke-width="1"/>
+            <rect x="22" y="23" width="2" height="1" fill="#00ff00"/>
+        </symbol>
+        <symbol id="icon-recycle" viewBox="0 0 32 32">
+            <path d="M4 6 L28 6 L26 28 L6 28 Z" fill="transparent" stroke="black"/>
+            <rect x="8" y="8" width="2" height="18" fill="#808080"/><rect x="14" y="8" width="2" height="18" fill="#808080"/><rect x="20" y="8" width="2" height="18" fill="#808080"/>
+            <rect x="2" y="4" width="28" height="2" fill="#c0c0c0" stroke="black"/><rect x="10" y="2" width="12" height="2" fill="#c0c0c0" stroke="black"/>
+        </symbol>
+        <symbol id="icon-network" viewBox="0 0 32 32">
+            <rect x="2" y="6" width="12" height="10" fill="#c0c0c0" stroke="black"/><rect x="4" y="8" width="8" height="6" fill="#008080"/>
+            <rect x="18" y="14" width="12" height="10" fill="#c0c0c0" stroke="black"/><rect x="20" y="16" width="8" height="6" fill="#008080"/>
+            <line x1="8" y1="16" x2="8" y2="26" stroke="black" stroke-width="2"/><line x1="8" y1="26" x2="24" y2="26" stroke="black" stroke-width="2"/><line x1="24" y1="24" x2="24" y2="26" stroke="black" stroke-width="2"/>
+        </symbol>
+        <symbol id="icon-notepad" viewBox="0 0 32 32">
+            <rect x="6" y="2" width="20" height="28" fill="white" stroke="black"/>
+            <line x1="10" y1="6" x2="22" y2="6" stroke="blue"/><line x1="10" y1="10" x2="22" y2="10" stroke="blue"/><line x1="10" y1="14" x2="22" y2="14" stroke="blue"/>
+            <rect x="6" y="2" width="20" height="4" fill="#c0c0c0" stroke="black"/>
+        </symbol>
+        <symbol id="icon-video" viewBox="0 0 32 32">
+            <rect x="4" y="4" width="24" height="24" fill="#c0c0c0" stroke="black" stroke-width="1"/>
+            <rect x="6" y="6" width="20" height="20" fill="black"/>
+            <path d="M12 10 L22 16 L12 22 Z" fill="white"/>
+            <rect x="4" y="4" width="24" height="4" fill="blue"/>
+            <rect x="4" y="24" width="24" height="4" fill="blue"/>
+        </symbol>
+        <symbol id="icon-users" viewBox="0 0 32 32">
+            <rect x="4" y="12" width="10" height="12" fill="yellow" stroke="black"/><circle cx="9" cy="10" r="4" fill="yellow" stroke="black"/>
+            <rect x="16" y="12" width="10" height="12" fill="#c0c0c0" stroke="black"/><circle cx="21" cy="10" r="4" fill="#c0c0c0" stroke="black"/>
+        </symbol>
+        <symbol id="icon-folder" viewBox="0 0 32 32">
+            <path d="M2 6 L12 6 L14 8 L28 8 L28 26 L2 26 Z" fill="#ffdf00" stroke="black"/>
+        </symbol>
+        <symbol id="icon-modem" viewBox="0 0 32 32">
+            <rect x="4" y="16" width="24" height="10" fill="#808080" stroke="black"/><circle cx="8" cy="21" r="1" fill="red"/><circle cx="12" cy="21" r="1" fill="red"/>
+            <rect x="8" y="6" width="16" height="10" fill="black" stroke="gray"/>
+        </symbol>
+        <symbol id="icon-windows" viewBox="0 0 16 16">
+            <rect x="2" y="2" width="5" height="5" fill="#e05050"/><rect x="8" y="2" width="5" height="5" fill="#50e050"/>
+            <rect x="2" y="8" width="5" height="5" fill="#5050e0"/><rect x="8" y="8" width="5" height="5" fill="#e0e050"/>
+        </symbol>
+        <symbol id="icon-shutdown" viewBox="0 0 32 32">
+            <rect x="6" y="6" width="20" height="20" fill="red" stroke="black"/>
+            <line x1="16" y1="8" x2="16" y2="16" stroke="white" stroke-width="3"/><circle cx="16" cy="16" r="6" fill="none" stroke="white" stroke-width="3"/>
+        </symbol>
+        <symbol id="icon-key" viewBox="0 0 32 32">
+            <circle cx="10" cy="16" r="6" fill="#ffd700" stroke="black"/><rect x="16" y="14" width="10" height="4" fill="#ffd700" stroke="black"/>
+            <rect x="22" y="18" width="2" height="4" fill="#ffd700" stroke="black"/>
+        </symbol>
+        <symbol id="icon-help" viewBox="0 0 32 32">
+            <rect x="6" y="4" width="20" height="24" fill="#000080" stroke="white"/><text x="11" y="22" fill="white" font-family="serif" font-weight="bold" font-size="20">?</text>
+        </symbol>
+    </svg>
+
+    <!-- BIOS BOOT SCREEN -->
+    <div id="bios-screen" class="fullscreen-overlay" style="display: flex;">
+        <div style="display:flex; justify-content:space-between;">
+            <div>AWARD MODULAR BIOS v4.51PG, An Energy Star Ally</div>
+            <div style="text-align:right;">
+                 <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Energy_Star_logo_%281993-2001%29.svg/1200px-Energy_Star_logo_%281993-2001%29.svg.png" class="energy-star" alt="Energy Star">
+            </div>
+        </div>
+        <br>
+        <div>Copyright (C) 1984-98, Award Software, Inc.</div>
+        <br>
+        <div>PENTIUM-II CPU at 450MHz</div>
+        <div>Memory Test : <span id="mem-test">0</span>K OK</div>
+        <br>
+        <div id="bios-lines"></div>
+    </div>
+
+    <!-- BSOD SCREEN -->
+    <div id="bsod-screen" class="fullscreen-overlay">
+        <div style="background: white; color: #0000AA; display: inline-block; padding: 0 4px; font-weight: bold; margin-bottom: 20px;">Windows</div>
+        <p>A fatal exception 0E has occurred at 0028:C0034B23 in VXD VMM(01) + 00003B23.</p>
+        <p>The current application will be terminated.</p>
+        <br>
+        <p>Press any key to continue_</p>
+    </div>
+
+    <!-- DESKTOP ICONS -->
+    <div id="desktop">
+        <div class="desktop-icon" style="top: 20px; left: 20px;" onmousedown="dragIcon(this, event)">
+            <svg class="icon-svg"><use href="#icon-mycomputer"></use></svg><span>My Computer</span>
+        </div>
+        <div class="desktop-icon" style="top: 100px; left: 20px;" onmousedown="dragIcon(this, event)">
+            <svg class="icon-svg"><use href="#icon-recycle"></use></svg><span>Recycle Bin</span>
+        </div>
+        <div class="desktop-icon" style="top: 180px; left: 20px;" onmousedown="dragIcon(this, event)" ondblclick="triggerBSOD()">
+            <svg class="icon-svg"><use href="#icon-network"></use></svg><span>Network Neighborhood</span>
+        </div>
+        <!-- NEW VIDEO ICON -->
+        <div class="desktop-icon" style="top: 260px; left: 20px;" onmousedown="dragIcon(this, event)" ondblclick="openVideo()">
+            <svg class="icon-svg"><use href="#icon-video"></use></svg><span>evidence.mp4</span>
         </div>
     </div>
 
-    <div class="max-w-6xl mx-auto space-y-8 relative z-10 opacity-0 transition-opacity duration-1000" id="main-content">
-        
-        <!-- Header -->
-        <header class="flex flex-col md:flex-row justify-between items-end border-b border-gray-800 pb-4 relative group">
-            <div class="absolute bottom-0 left-0 w-0 group-hover:w-full h-[1px] bg-gradient-to-r from-teal-500 via-blue-500 to-teal-500 transition-all duration-1000 shadow-[0_0_15px_#00ffaa]"></div>
-            <div>
-                <h1 class="text-5xl md:text-7xl font-bold text-gray-100 tracking-tighter uppercase hacker-text" data-value="PERSONNEL FILE">PERSONNEL FILE</h1>
-                <p class="mono text-teal-500 text-sm mt-1 flex items-center">
-                    <span class="w-2 h-2 bg-teal-500 rounded-full mr-2 animate-pulse shadow-[0_0_8px_#00ffaa]"></span>
-                    SECURE TERMINAL // ACCESS GRANTED
-                </p>
+    <!-- MAIN PROFILE WINDOW -->
+    <div id="win-profile" class="window active w-[1000px] h-[650px] z-20" style="top: 30px; left: 50px; display:none;" onmousedown="focusWindow('win-profile')">
+        <div class="title-bar" onmousedown="dragWindow('win-profile', event)">
+            <div class="flex items-center gap-2 pointer-events-none">
+                <svg class="icon-sm"><use href="#icon-mycomputer"></use></svg>
+                <span>System_Control_Panel.exe - [Truth_Lab.2040]</span>
             </div>
-            <div class="text-right hidden md:block opacity-80 font-mono text-xs text-gray-500 space-y-1">
-                <div id="live-clock">TIME: --:--:--</div>
-                <div>LOC: BIRMINGHAM SECURE ZONE</div>
-                <div class="flex items-center justify-end">
-                    <span class="mr-2">NET_STATUS:</span>
-                    <div class="flex items-end h-3">
-                        <span class="signal-bar h-1 signal-active"></span>
-                        <span class="signal-bar h-2 signal-active"></span>
-                        <span class="signal-bar h-3 signal-active"></span>
-                        <span class="signal-bar h-2 bg-gray-700 animate-pulse"></span> <!-- Simulating signal fluctuation -->
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Main Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            
-            <!-- Left Column: ID & Stats -->
-            <div class="lg:col-span-5 space-y-8">
-                
-                <!-- ID Card Container -->
-                <div class="id-card-container h-[350px] w-full relative" id="id-card-wrap">
-                    <div class="id-card-glass rounded-xl p-5 w-full h-full flex flex-col justify-between relative overflow-hidden transition-all" id="id-card">
-                        
-                        <!-- Decorative Hologram Overlay (CSS generated) -->
-                        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 mix-blend-overlay z-0"></div>
-
-                        <!-- Top Bar -->
-                        <div class="flex justify-between items-start z-10 id-content-layer">
-                            <div class="flex flex-col">
-                                <span class="text-[9px] text-gray-400 tracking-[0.3em] uppercase">Issued Authority</span>
-                                <span class="text-xs font-bold text-gray-100 tracking-wide">CIVIC VERIFICATION BUREAU</span>
-                            </div>
-                            <!-- Microchip -->
-                            <div class="w-12 h-9 rounded border border-yellow-600/60 bg-gradient-to-br from-yellow-800/40 to-yellow-600/10 flex items-center justify-center relative overflow-hidden shadow-lg">
-                                <div class="absolute inset-0 bg-yellow-400/20 animate-pulse"></div>
-                                <div class="grid grid-cols-2 gap-1 w-full h-full p-1 opacity-60">
-                                    <div class="border-r border-yellow-600/50"></div>
-                                    <div></div>
-                                    <div class="border-r border-t border-yellow-600/50"></div>
-                                    <div class="border-t border-yellow-600/50"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Middle Content -->
-                        <div class="flex gap-5 items-center z-10 mt-2 id-content-layer">
-                            <!-- Photo Area -->
-                            <div class="w-28 h-36 bg-gray-900 border border-gray-600/50 rounded-sm overflow-hidden relative shadow-[0_0_15px_rgba(0,0,0,0.5)] group">
-                                <!-- PLACEHOLDER IMAGE -->
-                                <img src="https://as2.ftcdn.net/jpg/04/78/45/07/1000_F_478450717_bNgoSpM4NZACVdQ0P26sJofHRw8ZT5lU.jpg" alt="Jaxon Denney" class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500">
-                                
-                                <!-- Holographic Sticker Overlay -->
-                                <div class="absolute top-2 right-2 w-8 h-8 rounded-full border border-white/20 flex items-center justify-center opacity-50">
-                                    <div class="w-6 h-6 border border-white/20 rounded-full"></div>
-                                </div>
-                                
-                                <!-- Scanline -->
-                                <div class="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,0,0,0.4)_50%)] bg-[length:100%_4px] pointer-events-none opacity-40"></div>
-                            </div>
-                            
-                            <div class="flex flex-col h-36 justify-between py-1">
-                                <div>
-                                    <h2 class="text-3xl font-bold text-white uppercase tracking-tight leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hacker-text" data-value="DENNEY">DENNEY</h2>
-                                    <h2 class="text-3xl font-bold text-white uppercase tracking-tight leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] hacker-text mb-2" data-value="JAXON">JAXON</h2>
-                                    <span class="text-[10px] text-gray-400 mono bg-black/40 px-1">ID: 8492-JD-40</span>
-                                </div>
-                                <div class="relative">
-                                    <div class="absolute inset-0 bg-red-600 blur-md opacity-40"></div>
-                                    <span class="relative text-xs text-red-100 font-bold tracking-widest bg-gradient-to-r from-red-700 to-red-600 px-3 py-1 rounded-sm shadow-lg border border-red-500/30 inline-block">VERIFIED HUMAN</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Bottom Bar -->
-                        <div class="border-t border-white/10 pt-3 flex justify-between items-end z-10 id-content-layer">
-                            <div>
-                                <span class="block text-[8px] text-gray-500 uppercase tracking-wider">Security Clearance</span>
-                                <span class="text-sm text-teal-400 font-mono tracking-wide drop-shadow-[0_0_5px_rgba(45,212,191,0.6)]">ANALOG-TIER 1</span>
-                            </div>
-                            <!-- Barcode Representation -->
-                            <div class="h-6 flex items-end opacity-70 gap-[2px]">
-                                <div class="w-1 h-full bg-white"></div>
-                                <div class="w-[2px] h-4 bg-white"></div>
-                                <div class="w-[3px] h-full bg-white"></div>
-                                <div class="w-[1px] h-5 bg-white"></div>
-                                <div class="w-[4px] h-full bg-white"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Stats Panel -->
-                <div class="bg-gray-900/40 border border-gray-800 p-6 relative overflow-hidden group hover:border-teal-500/30 transition-colors duration-300">
-                    <div class="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-teal-500/5 to-transparent"></div>
-                    
-                    <h3 class="text-teal-500 text-xs font-bold uppercase tracking-[0.2em] mb-4 flex items-center">
-                        <svg class="w-3 h-3 mr-2" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
-                        Subject Biometrics
-                    </h3>
-                    <dl class="space-y-4 text-sm">
-                        <div class="flex justify-between border-b border-gray-800/50 pb-2">
-                            <dt class="text-gray-500 font-mono text-xs">FULL_NAME</dt>
-                            <dd class="text-gray-200 tracking-wide">Jaxon Denney</dd>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-800/50 pb-2">
-                            <dt class="text-gray-500 font-mono text-xs">DOB_YEAR</dt>
-                            <dd class="text-gray-200">2009 <span class="text-gray-600 text-xs">(AGE 31)</span></dd>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-800/50 pb-2">
-                            <dt class="text-gray-500 font-mono text-xs">BIOLOGICAL_STATUS</dt>
-                            <dd class="text-green-400 flex items-center font-bold text-xs bg-green-900/20 px-2 py-0.5 rounded border border-green-900/50">
-                                <span class="w-1.5 h-1.5 bg-green-500 rounded-full mr-2 animate-pulse"></span>ORGANIC
-                            </dd>
-                        </div>
-                        <div class="flex justify-between pb-1">
-                            <dt class="text-gray-500 font-mono text-xs">ASSIGNED_ZONE</dt>
-                            <dd class="text-gray-200">Birmingham Sector 4</dd>
-                        </div>
-                    </dl>
-                </div>
-
-            </div>
-
-            <!-- Right Column: Narrative Data -->
-            <div class="lg:col-span-7 space-y-10 pt-2">
-                
-                <!-- Section 1 -->
-                <section class="group">
-                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-3 border-b border-gray-800 pb-2 hacker-text" data-value="01 // WORK & ISOLATION">
-                        01 // WORK & ISOLATION
-                    </h3>
-                    <div class="relative pl-4 border-l-2 border-gray-800 group-hover:border-teal-500 transition-colors duration-300">
-                        <p class="text-gray-300 leading-relaxed">
-                            My job was taken over by AI. It’s a common story these days—if a task involves processing data or digital creation, a bot does it faster and cheaper. I spend most of my time alone now, trying to figure out what "value" I have in a world that doesn't need my professional skills anymore.
-                        </p>
-                    </div>
-                </section>
-
-                <!-- Section 2 -->
-                <section class="group">
-                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-3 border-b border-gray-800 pb-2 hacker-text" data-value="02 // TECH & TRUST">
-                        02 // TECH & TRUST
-                    </h3>
-                    <div class="pl-4 border-l-2 border-gray-800 group-hover:border-red-500 transition-colors duration-300 space-y-4">
-                        <p class="text-gray-300 leading-relaxed">
-                            I use strictly functional tech. No "smart" devices. If it has a connection, it’s flooded with AI noise. My trust in the internet is at <strong class="text-red-400">zero</strong>. You can’t tell if a video is real or a deepfake, or if a news article was written by a bot farm.
-                        </p>
-                        <!-- Warning Box -->
-                        <div class="bg-red-950/20 border border-red-900/40 p-4 rounded flex items-start gap-4 hover:bg-red-950/30 transition-colors cursor-help group/alert">
-                            <div class="text-red-500 text-xl mt-0.5 animate-pulse">⚠️</div>
-                            <div>
-                                <h4 class="text-red-400 text-xs font-bold uppercase tracking-wide mb-1 group-hover/alert:text-red-300">Active Protocol: Analog Verification</h4>
-                                <p class="text-sm text-gray-400 font-mono border-l-2 border-red-900/50 pl-2">
-                                    "I don't believe news unless I see it in a physical medium or hear it from a verified human source in person."
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 3 -->
-                <section class="group">
-                    <h3 class="flex items-center text-teal-500 font-mono text-lg mb-3 border-b border-gray-800 pb-2 hacker-text" data-value="03 // RELATIONS">
-                         03 // RELATIONS
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <!-- Contact Card -->
-                        <div class="bg-gray-900/30 p-4 border border-gray-800 rounded hover:bg-gray-800 transition-all hover:scale-[1.02] cursor-pointer group/card relative overflow-hidden">
-                             <div class="absolute inset-0 bg-green-500/5 translate-y-full group-hover/card:translate-y-0 transition-transform duration-300"></div>
-                            <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-widest">Primary Contact</h4>
-                            <div class="flex items-center mb-1">
-                                <div class="w-2 h-2 bg-green-500 rounded-full mr-2 shadow-[0_0_5px_lime]"></div>
-                                <span class="text-gray-100 font-bold tracking-wide">Sarah Denney (Sister)</span>
-                            </div>
-                            <p class="text-xs text-gray-500 ml-4 font-mono">LOC: Huntsville Ag-District</p>
-                        </div>
-
-                        <!-- Protocol Card -->
-                        <div class="bg-gray-900/30 p-4 border border-gray-800 rounded hover:bg-gray-800 transition-all hover:scale-[1.02] cursor-pointer group/card relative overflow-hidden">
-                            <div class="absolute inset-0 bg-teal-500/5 translate-y-full group-hover/card:translate-y-0 transition-transform duration-300"></div>
-                            <h4 class="text-[10px] font-bold text-gray-500 uppercase mb-2 tracking-widest">Comm Method</h4>
-                            <p class="text-sm text-teal-400 font-mono font-bold">"THE HANDSHAKE"</p>
-                            <p class="text-xs text-gray-400 mt-1 leading-tight">Localized mesh networks. Analog passphrases exchanged in person only.</p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Section 4 -->
-                <section class="group">
-                     <h3 class="flex items-center text-teal-500 font-mono text-lg mb-3 border-b border-gray-800 pb-2 hacker-text" data-value="04 // REFLECTION">
-                        04 // REFLECTION
-                    </h3>
-                    <p class="text-gray-400 italic pl-4 border-l-2 border-gray-800 group-hover:border-blue-500 transition-colors duration-300 text-lg">
-                        "Everything feels fabricated. But it’s forced us to value the physical world. If I want to know how a friend is doing, I have to actually go see them. <span class="text-gray-200 not-italic font-bold">You can't fake a handshake yet.</span>"
-                    </p>
-                </section>
-
+            <div class="title-bar-controls">
+                <div class="win-btn" onclick="minimizeWindow('win-profile')">_</div>
+                <div class="win-btn">□</div>
+                <div class="win-btn" onclick="systemShutdown()">X</div>
             </div>
         </div>
-        
-        <!-- Footer -->
-        <footer class="text-center border-t border-gray-800 pt-8 mt-12 pb-8 opacity-50">
-             <p class="mono text-[10px] text-gray-600 tracking-[0.3em]">
-                 CIVIC VERIFICATION BUREAU // END OF FILE <span class="animate-pulse">_</span>
-             </p>
-        </footer>
+        <div class="flex flex-col h-full bg-[#c0c0c0]">
+            <div class="p-2 border-b border-white flex justify-between items-center bg-[#c0c0c0]">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-white border-2 border-gray-500 shadow-inner flex items-center justify-center text-2xl">⚠</div>
+                    <div>
+                        <h1 class="text-lg font-bold font-mono">Truth_Lab.2040</h1>
+                        <p class="text-xs font-mono text-gray-600">Secure Connection: Huntsville Sector 4</p>
+                    </div>
+                </div>
+                <button onclick="toggleVerification()" id="verifyBtn" class="win-btn w-40 h-8 text-xs uppercase font-bold">Run Verification.exe</button>
+            </div>
+            <div class="flex flex-1 overflow-hidden">
+                <aside class="w-48 p-2 flex flex-col gap-2 border-r border-gray-500">
+                    <div class="sidebar-btn active" onclick="switchTab('identity', this)">
+                        <svg class="icon-md"><use href="#icon-users"></use></svg> Identity Core
+                    </div>
+                    <div class="sidebar-btn" onclick="switchTab('diary', this)">
+                        <svg class="icon-md"><use href="#icon-folder"></use></svg> Evidence Locker
+                    </div>
+                    <div class="sidebar-btn" onclick="switchTab('comms', this)">
+                        <svg class="icon-md"><use href="#icon-modem"></use></svg> Comms Mesh
+                    </div>
+                    <div class="mt-auto border border-gray-500 bg-black p-2 font-mono text-[10px] text-green-400 h-24 overflow-hidden shadow-inner">
+                         <div id="diagnostics-feed"></div>
+                    </div>
+                </aside>
+                <main class="flex-1 inset-panel relative bg-gray-100 p-4">
+                    <!-- VIEW 1: IDENTITY -->
+                    <div id="view-identity" class="h-full block">
+                        <div class="grid grid-cols-2 gap-4 h-full">
+                            <div class="win-window border border-gray-500 flex flex-col h-full bg-black relative overflow-hidden" id="digitalPanel">
+                                <div class="bg-blue-900 text-white text-xs px-2 py-1 flex justify-between">
+                                    <span>Netscape Storm Viewer [LIVE]</span><span>ALERT LEVEL: 5</span>
+                                </div>
+                                <div class="scanline absolute inset-0 pointer-events-none"></div>
+                                <div id="weather-3d-container" class="flex-1 relative bg-[#020202]"></div>
+                                <div id="digitalOverlay" class="absolute inset-0 bg-black/90 hidden flex-col justify-center items-center z-30 backdrop-blur-sm">
+                                    <div class="border-4 border-red-600 p-4 transform -rotate-12 bg-black text-red-600 font-black text-4xl uppercase">FAKE</div>
+                                    <p class="font-mono text-red-400 text-xs mt-2">ERROR: REALITY MISMATCH</p>
+                                </div>
+                            </div>
+                            <div class="relative h-full flex flex-col gap-4">
+                                <div class="bg-white border border-gray-400 p-4 shadow-md relative">
+                                    <h3 class="font-mono text-xs font-bold mb-2 underline">PHYSICAL TOKEN PREVIEW</h3>
+                                    <div class="id-card-container h-[220px] w-full relative select-none cursor-pointer" id="id-card-wrap">
+                                        <div class="id-card-glass rounded-lg p-3 w-full h-full flex flex-col justify-between relative overflow-hidden" id="id-card">
+                                            <div class="flex justify-between items-start z-10 id-content-layer">
+                                                <div class="flex flex-col"><span class="text-[8px] text-gray-600 tracking-widest uppercase">Issued Authority</span><span class="text-[10px] font-bold text-black tracking-wide">CIVIC VERIFICATION BUREAU</span></div>
+                                                <div class="w-6 h-5 border border-yellow-600 bg-yellow-200 rounded-sm"></div>
+                                            </div>
+                                            <div class="flex gap-3 items-center z-10 mt-1 id-content-layer">
+                                                <div class="w-16 h-20 bg-gray-300 border border-gray-500 overflow-hidden"><img src="https://as2.ftcdn.net/jpg/04/78/45/07/1000_F_478450717_bNgoSpM4NZACVdQ0P26sJofHRw8ZT5lU.jpg" class="w-full h-full object-cover grayscale"></div>
+                                                <div class="flex flex-col"><h2 class="text-lg font-bold text-black uppercase leading-none courier">DENNEY</h2><span class="text-[9px] text-gray-600 font-mono">ID: 8492-JD-40</span><span class="text-[9px] text-red-700 font-bold border border-red-700 px-1 mt-1 w-fit transform -rotate-2">VERIFIED HUMAN</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div id="analogStamp" class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border-[4px] border-green-700 text-green-700 p-2 text-2xl font-black uppercase opacity-0 transition-all duration-500 pointer-events-none z-30 mix-blend-multiply bg-white/80">VERIFIED</div>
+                                </div>
+                                <div class="bg-gray-100 border border-gray-400 p-2 font-mono text-xs overflow-y-auto flex-1">
+                                    <p class="mb-2"><strong>STATUS:</strong> Reality Auditor (Displaced)</p>
+                                    <p class="mb-2"><strong>TRUST:</strong> Zero. "I don't believe news unless I see it in a physical medium."</p>
+                                    <p class="mb-2"><strong>PROTOCOL:</strong> "The Handshake" with Sarah.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- VIEW 2: EVIDENCE LOCKER (DIARY) -->
+                    <div id="view-diary" class="hidden h-full overflow-y-auto bg-gray-200 p-4">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="paper-scrap p-4 rotate-[-1deg] relative group hover:z-10 hover:scale-[1.02] transition-transform" onclick="openDiary(0)">
+                                <div class="bg-blue-900 text-white p-1 mb-2 text-xs flex justify-between"><span>Work Order #4092</span><span>DONE</span></div>
+                                <p class="font-mono text-[10px] text-blue-900 leading-tight"><strong>SUMMARY:</strong> Soldered solar array. Irony: I have a marketing degree but manual labor is the only real job left.<br><strong>NOTE:</strong> Education is different. No digital diplomas. Just skills you can touch.</p>
+                            </div>
+                            <div class="lined-paper p-4 rotate-1 relative shadow-md group hover:z-10 hover:scale-[1.02] transition-transform" onclick="openDiary(1)">
+                                <div class="absolute top-1 right-1 w-6 h-8 border border-red-300 flex items-center justify-center"><div class="w-4 h-4 bg-red-200 rounded-full"></div></div>
+                                <p class="handwritten text-lg text-zinc-800 leading-tight">Dear Jaxon,<br>Video calls are just deepfakes. We only trade paper. "Handshake Protocol" saves us. - Sarah</p>
+                            </div>
+                            <div class="bg-white p-4 rotate-[-1deg] border border-gray-400 font-mono text-[10px] shadow-md group hover:z-10 hover:scale-[1.02] transition-transform" onclick="openDiary(2)">
+                                <div class="border-b border-black mb-1 font-bold">HON BROADCAST LOG</div><p>> [ALERT]: Terminal shows Cat 6 storm.</p><p>> [REALITY]: Sky blue. No wind.</p><p>> [ANALYSIS]: Bot-farms fabricated disaster. If HON doesn't verify, it isn't real.</p>
+                            </div>
+                            <div class="paper-scrap p-4 rotate-1 relative bg-white shadow-md group hover:z-10 hover:scale-[1.02] transition-transform" onclick="openDiary(3)">
+                                <div class="typewriter text-xs text-black leading-relaxed"><p>Oct 28, 2040.</p><p>Sitting at my Remington. *Clack.* Digital text is fluid. Paper is a shield. My "Real-World Almanac" proves it rained when the AI says drought.</p></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- VIEW 3: COMMS MESH (Chat) -->
+                    <div id="view-comms" class="hidden h-full flex flex-col bg-black border-2 border-gray-600">
+                        <div class="bg-gray-300 p-1 text-black font-bold text-xs border-b border-gray-600">COMM_LINK.EXE - Secure Channel</div>
+                        <div class="flex-1 p-4 dos-font overflow-y-auto text-sm" id="chat-feed">
+                            <div>Microsoft(R) Windows 98</div><div>C:\> CONNECT 192.168.0.1 /SECURE</div><div class="text-yellow-500">INITIALIZING HANDSHAKE... OK</div><br><div><span class="chat-sys">[SYSTEM]</span> LINK ESTABLISHED.</div><div><span class="chat-sarah">[SARAH_D]</span> Jaxon? Signal is choppy. Are you safe?</div>
+                        </div>
+                        <div class="bg-gray-200 p-2 flex gap-2 border-t border-gray-600">
+                            <input id="chat-input" type="text" placeholder="Type message..." class="flex-1 border border-gray-500 p-1 text-sm bg-white font-mono outline-none" onkeydown="if(event.key === 'Enter') sendChat()">
+                            <button onclick="sendChat()" class="px-4 border-2 border-gray-400 bg-gray-300 text-xs font-bold shadow-sm active:border-inset active:bg-gray-400">SEND</button>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
 
+    <!-- NOTEPAD WINDOW -->
+    <div id="win-notepad" class="window w-[500px] h-[400px] z-30" style="top: 100px; left: 300px; display:none;" onmousedown="focusWindow('win-notepad')">
+        <div class="title-bar" onmousedown="dragWindow('win-notepad', event)">
+            <div class="flex items-center gap-2"><svg class="icon-sm"><use href="#icon-notepad"></use></svg><span id="notepad-title">Notepad</span></div>
+            <div class="title-bar-controls"><div class="win-btn" onclick="minimizeWindow('win-notepad')">_</div><div class="win-btn">□</div><div class="win-btn" onclick="closeDiary()">X</div></div>
+        </div>
+        <div class="menu-bar"><span class="menu-item">F</span>ile <span class="menu-item">E</span>dit <span class="menu-item">S</span>earch <span class="menu-item">H</span>elp</div>
+        <div class="flex-1 bg-white p-4 overflow-y-auto font-mono text-sm border-2 border-gray-400 inset-panel mx-1 mb-1">
+            <div class="border-b border-gray-300 mb-2 pb-1 text-xs text-gray-500" id="notepad-date"></div><div id="notepad-body" class="whitespace-pre-wrap leading-relaxed"></div>
+        </div>
+    </div>
+
+    <!-- VIDEO WINDOW -->
+    <div id="win-video" class="window w-[600px] h-[480px] z-30" style="top: 150px; left: 150px; display:none;" onmousedown="focusWindow('win-video')">
+        <div class="title-bar" onmousedown="dragWindow('win-video', event)">
+            <div class="flex items-center gap-2"><svg class="icon-sm"><use href="#icon-video"></use></svg><span>Media Player - evidence.mp4</span></div>
+            <div class="title-bar-controls"><div class="win-btn" onclick="minimizeWindow('win-video')">_</div><div class="win-btn">□</div><div class="win-btn" onclick="closeVideo()">X</div></div>
+        </div>
+        <div class="menu-bar"><span class="menu-item">F</span>ile <span class="menu-item">V</span>iew <span class="menu-item">P</span>lay <span class="menu-item">H</span>elp</div>
+        <div class="flex-1 bg-black p-0 border-2 border-gray-400 inset-panel mx-1 mb-1 relative overflow-hidden flex items-center justify-center">
+            
+            <!-- VIDEO PLAYER: Looks for "evidence.mp4" -->
+            <video id="real-video" src="evidence.mp4" class="w-full h-full object-cover" loop controls onerror="handleVideoError(this)"></video>
+            
+            <!-- CANVAS FALLBACK -->
+            <canvas id="video-canvas" width="600" height="400" class="w-full h-full absolute inset-0" style="display:none;"></canvas>
+            
+            <div class="absolute top-2 left-2 text-green-500 font-mono text-xs pointer-events-none">REC [00:04:22]</div>
+            <div class="absolute bottom-10 left-2 text-red-500 font-mono text-xs animate-pulse pointer-events-none">SIGNAL WEAK</div>
+        </div>
+        <div class="h-8 bg-gray-200 flex items-center justify-center gap-4 border-t border-white">
+            <div class="win-btn w-8 h-6">||</div><div class="win-btn w-8 h-6">></div><div class="win-btn w-8 h-6">[]</div>
+        </div>
+    </div>
+
+    <!-- START MENU -->
+    <div id="start-menu">
+        <div style="display: flex;">
+            <div class="start-sidebar">WINDOWS98</div>
+            <div style="flex:1;">
+                <div class="start-item" onclick="systemShutdown()"><svg class="icon-md"><use href="#icon-shutdown"></use></svg> <span>Shut Down...</span></div>
+                <div class="start-divider"></div>
+                <div class="start-item" onclick="location.reload()"><svg class="icon-md"><use href="#icon-key"></use></svg> <span>Log Off...</span></div>
+                <div class="start-item"><svg class="icon-md"><use href="#icon-help"></use></svg> <span>Help</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TASKBAR -->
+    <div class="taskbar">
+        <div class="start-btn" onclick="toggleStartMenu()" id="start-btn"><svg class="icon-sm mr-1"><use href="#icon-windows"></use></svg> Start</div>
+        <div class="w-[2px] h-full bg-gray-400 border-r border-white mx-1"></div>
+        <div id="task-profile" class="task-entry active" onclick="restoreWindow('win-profile')"><svg class="icon-sm"><use href="#icon-mycomputer"></use></svg> System_Control...</div>
+        <div id="task-notepad" class="task-entry" style="display:none;" onclick="restoreWindow('win-notepad')"><svg class="icon-sm"><use href="#icon-notepad"></use></svg> Notepad</div>
+        <div id="task-video" class="task-entry" style="display:none;" onclick="restoreWindow('win-video')"><svg class="icon-sm"><use href="#icon-video"></use></svg> Media Player</div>
+        <div class="flex-1"></div>
+        <div class="tray-clock"><svg class="icon-sm mr-1"><use href="#icon-sound"></use></svg><span id="taskbar-clock">12:00 PM</span></div>
     </div>
 
     <script>
-        /* --- 1. BOOT SEQUENCE LOGIC --- */
-        const bootScreen = document.getElementById('boot-screen');
-        const mainContent = document.getElementById('main-content');
-        const bootLog = document.getElementById('boot-log');
-        const bootProgress = document.getElementById('boot-progress');
-        
-        const logs = [
-            "INITIALIZING KERNEL...",
-            "CONNECTING TO SECURE_MESH...",
-            "BYPASSING AI_FILTER_V9...",
-            "VERIFYING HANDSHAKE TOKEN...",
-            "DECRYPTING BIOMETRICS...",
-            "RENDERING INTERFACE..."
+        const diaryEntries = [
+            { title: "Work_Order_4092.txt", date: "OCT 04, 2040", content: "I walked past the old high school today. It's a server farm now..." },
+            { title: "Letter_From_Sarah.txt", date: "OCT 20, 2040", content: "Sarah missed the check-in last Sunday..." },
+            { title: "Radio_Log_Entry.txt", date: "OCT 20, 2040", content: "The 'news' feeds are screaming about a solar flare today..." },
+            { title: "Typewriter_Page.txt", date: "OCT 28, 2040", content: "Routine is my anchor. Wake up. Check the Faraday cage..." }
         ];
 
-        let delay = 0;
-        let progress = 0;
+        const sarahKnowledge = {
+            greetings: ["hi", "hello", "hey", "jaxon"],
+            danger: ["drone", "patrol", "police", "raid", "safe", "danger"],
+            needs: ["food", "water", "hungry", "rations", "supply"],
+            tech: ["internet", "connection", "signal", "wifi", "bot", "ai"],
+            meeting: ["meet", "sunday", "time", "where", "when"]
+        };
+        const sarahResponses = {
+            greetings: ["Jaxon? I'm here. Keep your voice down, the line is crackling.", "I'm reading you. Signal is green but weak."],
+            danger: ["Quiet. If you see drones, go dark immediately.", "Sector 4 is hot tonight. Stay inside."],
+            needs: ["I managed to trade some silver for canned peaches.", "The water filters are failing in the south district."],
+            tech: ["The 'net is just noise. 99% bots talking to bots.", "My slate keeps glitching. I think they're updating the surveillance algo."],
+            meeting: ["Sunday. 1800 hours. The old oak tree.", "Same time as always. Watch for the red marker."],
+            unknown: ["Say again? The encryption is scrambling your words.", "I didn't copy that. Too much static."]
+        };
 
-        logs.forEach((log, index) => {
-            setTimeout(() => {
-                const div = document.createElement('div');
-                div.textContent = `> ${log}`;
-                bootLog.appendChild(div);
-                bootLog.scrollTop = bootLog.scrollHeight;
-                
-                progress += (100 / logs.length);
-                bootProgress.style.width = `${progress}%`;
+        let highestZ = 100, videoInterval;
 
-            }, delay);
-            delay += 250 + Math.random() * 300; 
-        });
-
-        setTimeout(() => {
-            bootScreen.style.opacity = '0';
-            bootScreen.style.pointerEvents = 'none';
-            mainContent.style.opacity = '1';
-        }, delay + 400);
-
-        /* --- 2. HACKER TEXT EFFECT --- */
-        const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-        document.querySelectorAll(".hacker-text").forEach(element => {
-            element.onmouseover = event => {
-                let iteration = 0;
-                clearInterval(element.interval);
-                
-                element.interval = setInterval(() => {
-                    event.target.innerText = event.target.innerText
-                        .split("")
-                        .map((letter, index) => {
-                            if(index < iteration) {
-                                return event.target.dataset.value[index];
-                            }
-                            return letters[Math.floor(Math.random() * 26)];
-                        })
-                        .join("");
-                    
-                    if(iteration >= event.target.dataset.value.length){ 
-                        clearInterval(element.interval);
-                    }
-                    
-                    iteration += 1 / 3;
-                }, 30);
-            }
-        });
-
-        /* --- 3. 3D ID CARD TILT --- */
-        const cardContainer = document.getElementById('id-card-wrap');
-        const card = document.getElementById('id-card');
-
-        cardContainer.addEventListener('mousemove', (e) => {
-            const rect = cardContainer.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            // Calculate rotation based on cursor position relative to center
-            const xRotation = -1 * ((y - rect.height/2) / 20); // Rotate X axis based on Y position
-            const yRotation = (x - rect.width/2) / 20;   // Rotate Y axis based on X position
-            
-            card.style.transform = `rotateX(${xRotation}deg) rotateY(${yRotation}deg) scale(1.02)`;
-        });
-
-        cardContainer.addEventListener('mouseleave', () => {
-            card.style.transform = 'rotateX(0) rotateY(0) scale(1)';
-        });
-
-        /* --- 4. LIVE CLOCK --- */
-        function updateClock() {
-            const now = new Date();
-            const timeString = now.toLocaleTimeString('en-US', { hour12: false });
-            document.getElementById('live-clock').innerText = `TIME: ${timeString}`;
+        function runBios() {
+            const bios = document.getElementById('bios-screen');
+            const linesDiv = document.getElementById('bios-lines');
+            const memTest = document.getElementById('mem-test');
+            const biosLines = ["Detecting Primary Master ... QUANTUM DRIVE 50TB", "Boot from CD :", "Starting Windows 98..."];
+            let mem = 0, lineIndex = 0;
+            const memInt = setInterval(() => {
+                mem += 8192; if(memTest) memTest.innerText = mem;
+                if(mem >= 262144) {
+                    clearInterval(memInt);
+                    const lineInt = setInterval(() => {
+                        if(lineIndex < biosLines.length) {
+                            const d = document.createElement('div'); d.innerText = biosLines[lineIndex++];
+                            if(linesDiv) linesDiv.appendChild(d);
+                        } else {
+                            clearInterval(lineInt);
+                            setTimeout(() => {
+                                if(bios) bios.style.display = 'none';
+                                const win = document.getElementById('win-profile'); if(win) win.style.display = 'flex';
+                                initThreeJS();
+                            }, 800);
+                        }
+                    }, 400);
+                }
+            }, 10);
         }
-        setInterval(updateClock, 1000);
-        updateClock();
+        runBios();
 
+        function initThreeJS() {
+            const container = document.getElementById('weather-3d-container'); if (!container) return;
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 7; camera.position.y = 4; camera.lookAt(0,0,0);
+            const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight); container.appendChild(renderer.domElement);
+            const gridHelper = new THREE.GridHelper(40, 40, 0x00ff00, 0x003300); scene.add(gridHelper);
+            const geometry = new THREE.BufferGeometry(); const positions = [], colors = [];
+            const colorCore = new THREE.Color(0xffff00), colorMid = new THREE.Color(0xff0000), colorOuter = new THREE.Color(0x550000);
+            for (let i = 0; i < 2000; i++) {
+                const angle = Math.random() * Math.PI * 2, r = 1.2 + Math.pow(Math.random(), 1.5) * 8, twist = r * 0.5;
+                positions.push(Math.cos(angle + twist) * r, ((Math.random() - 0.5) * (15 / r)) * 0.5 - 2, Math.sin(angle + twist) * r);
+                let c = (r < 2.5) ? colorCore : (r < 6 ? colorCore.clone().lerp(colorMid, (r - 2.5) / 3.5) : colorMid.clone().lerp(colorOuter, (r - 6) / 6));
+                colors.push(c.r, c.g, c.b);
+            }
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            const stormSystem = new THREE.Points(geometry, new THREE.PointsMaterial({ size: 0.1, vertexColors: true, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending }));
+            scene.add(stormSystem);
+            function animate() { requestAnimationFrame(animate); stormSystem.rotation.y -= 0.02; renderer.render(scene, camera); }
+            window.addEventListener('resize', () => { if(container.clientHeight > 0) { camera.aspect = container.clientWidth / container.clientHeight; camera.updateProjectionMatrix(); renderer.setSize(container.clientWidth, container.clientHeight); } });
+            animate();
+        }
+
+        function dragWindow(id, e) {
+            e.preventDefault(); const win = document.getElementById(id); if(!win) return; focusWindow(id);
+            let startX = e.clientX, startY = e.clientY, startLeft = win.offsetLeft, startTop = win.offsetTop;
+            function doDrag(e) { win.style.left = (startLeft + e.clientX - startX) + 'px'; win.style.top = (startTop + e.clientY - startY) + 'px'; }
+            function stopDrag() { document.removeEventListener('mousemove', doDrag); document.removeEventListener('mouseup', stopDrag); }
+            document.addEventListener('mousemove', doDrag); document.addEventListener('mouseup', stopDrag);
+        }
+        function dragIcon(el, e) {
+            e.stopPropagation(); el.classList.add('selected');
+            let startX = e.clientX, startY = e.clientY, startLeft = el.offsetLeft, startTop = el.offsetTop;
+            function doDrag(e) { el.style.left = (startLeft + e.clientX - startX) + 'px'; el.style.top = (startTop + e.clientY - startY) + 'px'; }
+            function stopDrag() { document.removeEventListener('mousemove', doDrag); document.removeEventListener('mouseup', stopDrag); setTimeout(() => el.classList.remove('selected'), 200); }
+            document.addEventListener('mousemove', doDrag); document.addEventListener('mouseup', stopDrag);
+        }
+        function focusWindow(id) {
+            highestZ++; const win = document.getElementById(id); if(win) { win.style.zIndex = highestZ; document.querySelectorAll('.window').forEach(w => w.classList.remove('active')); win.classList.add('active'); }
+            document.querySelectorAll('.task-entry').forEach(t => t.classList.remove('active'));
+            if(id === 'win-profile') document.getElementById('task-profile')?.classList.add('active');
+            if(id === 'win-notepad') document.getElementById('task-notepad')?.classList.add('active');
+            if(id === 'win-video') document.getElementById('task-video')?.classList.add('active');
+        }
+        function minimizeWindow(id) {
+            const win = document.getElementById(id); if(win) win.style.display = 'none';
+            if(id === 'win-profile') document.getElementById('task-profile')?.classList.remove('active');
+            if(id === 'win-notepad') document.getElementById('task-notepad')?.classList.remove('active');
+            if(id === 'win-video') document.getElementById('task-video')?.classList.remove('active');
+        }
+        function restoreWindow(id) { const win = document.getElementById(id); if(win) { win.style.display = 'flex'; focusWindow(id); } }
+        function switchTab(viewId, btn) {
+            document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+            ['identity', 'diary', 'comms'].forEach(v => document.getElementById(`view-${v}`)?.classList.add('hidden'));
+            document.getElementById(`view-${viewId}`)?.classList.remove('hidden');
+        }
+        function toggleVerification() {
+            const body = document.body, btn = document.getElementById('verifyBtn'), o = document.getElementById('digitalOverlay'), s = document.getElementById('analogStamp'), p = document.getElementById('digitalPanel');
+            if(!btn || !o || !s || !p) return;
+            if (body.classList.contains('verify-active')) {
+                body.classList.remove('verify-active'); o.classList.remove('flex'); o.classList.add('hidden'); s.style.opacity = '0'; p.style.filter = 'none'; btn.innerText = "RUN VERIFICATION.EXE";
+            } else {
+                btn.innerText = "PROCESSING..."; setTimeout(() => { body.classList.add('verify-active'); o.classList.remove('hidden'); o.classList.add('flex'); s.style.opacity = '1'; btn.innerText = "RESET SYSTEM"; }, 1000);
+            }
+        }
+        function openDiary(index) {
+            const entry = diaryEntries[index];
+            document.getElementById('notepad-title').innerText = entry.title + " - Notepad";
+            document.getElementById('notepad-date').innerText = entry.date;
+            document.getElementById('notepad-body').innerText = entry.content;
+            restoreWindow('win-notepad'); document.getElementById('task-notepad').style.display = 'flex';
+        }
+        function closeDiary() { document.getElementById('win-notepad').style.display = 'none'; document.getElementById('task-notepad').style.display = 'none'; }
+        
+        function openVideo() {
+            restoreWindow('win-video');
+            document.getElementById('task-video').style.display = 'flex';
+            const vid = document.getElementById('real-video');
+            const canvas = document.getElementById('video-canvas');
+            
+            // Reset to video first, assume user has file
+            if(vid) {
+                vid.style.display = 'block';
+                if(canvas) canvas.style.display = 'none';
+                vid.currentTime = 0; 
+                vid.play().catch(e => {
+                    handleVideoError(vid);
+                });
+            }
+        }
+
+        function closeVideo() {
+            document.getElementById('win-video').style.display = 'none';
+            document.getElementById('task-video').style.display = 'none';
+            const vid = document.getElementById('real-video');
+            if (vid) vid.pause();
+            stopVideoNoise();
+        }
+
+        function handleVideoError(videoEl) {
+            videoEl.style.display = 'none';
+            const canvas = document.getElementById('video-canvas');
+            if(canvas) {
+                canvas.style.display = 'block';
+                startVideoNoise();
+            }
+        }
+
+        function startVideoNoise() {
+            const canvas = document.getElementById('video-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            
+            if (videoInterval) clearInterval(videoInterval);
+
+            videoInterval = setInterval(() => {
+                const w = canvas.width, h = canvas.height;
+                const idata = ctx.createImageData(w, h);
+                const buffer32 = new Uint32Array(idata.data.buffer);
+                for (let i = 0; i < buffer32.length; i++) {
+                    if (Math.random() < 0.1) buffer32[i] = 0xffffffff;
+                    else buffer32[i] = 0xff000000;
+                }
+                ctx.putImageData(idata, 0, 0);
+                
+                ctx.fillStyle = "rgba(0, 255, 0, 0.7)"; 
+                ctx.font = "20px monospace"; 
+                ctx.fillText("FILE NOT FOUND: evidence.mp4", 50, 50);
+                ctx.fillText("PLEASE CHECK FOLDER", 50, 80);
+            }, 50);
+        }
+
+        function stopVideoNoise() { 
+            if (videoInterval) clearInterval(videoInterval); 
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chat-input'), feed = document.getElementById('chat-feed');
+            if(!input || !feed) return;
+            const text = input.value.trim(); if(!text) return;
+            const userMsg = document.createElement('div'); userMsg.className = "chat-msg"; userMsg.innerHTML = `<span class="chat-user">[YOU]</span> ${text}`;
+            feed.appendChild(userMsg); input.value = ''; feed.scrollTop = feed.scrollHeight;
+            setTimeout(() => {
+                const replyText = getSarahResponse(text);
+                const reply = document.createElement('div'); reply.className = "chat-msg"; reply.innerHTML = `<span class="chat-sarah">[SARAH_D]</span> ${replyText}`;
+                feed.appendChild(reply); feed.scrollTop = feed.scrollHeight;
+            }, 1000 + Math.random() * 1500);
+        }
+        function getSarahResponse(input) {
+            const text = input.toLowerCase();
+            for (const [intent, keywords] of Object.entries(sarahKnowledge)) { if (keywords.some(word => text.includes(word))) return sarahResponses[intent][Math.floor(Math.random() * sarahResponses[intent].length)]; }
+            return sarahResponses.unknown[Math.floor(Math.random() * sarahResponses.unknown.length)];
+        }
+        function toggleStartMenu() { const m = document.getElementById('start-menu'); if(m) m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; }
+        document.addEventListener('click', (e) => { const m = document.getElementById('start-menu'), b = document.getElementById('start-btn'); if(m && m.style.display === 'flex' && !m.contains(e.target) && !b.contains(e.target)) m.style.display = 'none'; });
+        function triggerBSOD() { const b = document.getElementById('bsod-screen'); if(b) b.style.display = 'block'; const r = () => location.reload(); document.addEventListener('keydown', r); document.addEventListener('click', r); }
+        
+        let clockInterval, diagInterval;
+        function systemShutdown() {
+            if(clockInterval) clearInterval(clockInterval); 
+            if(diagInterval) clearInterval(diagInterval); 
+            if(videoInterval) clearInterval(videoInterval);
+            document.body.innerHTML = "<div style='width:100%;height:100vh;background:black;color:orange;display:flex;align-items:center;justify-content:center;flex-direction:column;font-family:monospace'><h1>It is now safe to turn off your computer.</h1><button onclick='location.reload()' style='margin-top:20px;padding:10px;background:#333;color:white;border:1px solid white;cursor:pointer;'>RESTART</button></div>";
+        }
+        
+        clockInterval = setInterval(() => { const t = new Date().toLocaleTimeString('en-US', {hour:'numeric', minute:'2-digit'}); const l = document.getElementById('live-clock'), tb = document.getElementById('taskbar-clock'); if(l) l.innerText = t; if(tb) tb.innerText = t; }, 1000);
+        diagInterval = setInterval(() => { const f = document.getElementById('diagnostics-feed'); if(f) { const d = document.createElement('div'); d.innerText = `> MEM: 0x${Math.random().toString(16).substr(2,8).toUpperCase()} OK`; f.prepend(d); if(f.children.length > 5) f.lastChild.remove(); } }, 2000);
+        
+        const card = document.getElementById('id-card'), wrap = document.getElementById('id-card-wrap');
+        if(wrap && card) { wrap.addEventListener('mousemove', (e) => { const r = wrap.getBoundingClientRect(), x = (e.clientX - r.left - r.width/2)/20, y = -(e.clientY - r.top - r.height/2)/20; card.style.transform = `rotateX(${y}deg) rotateY(${x}deg)`; }); wrap.addEventListener('mouseleave', () => card.style.transform = 'none'); }
     </script>
 </body>
 </html>

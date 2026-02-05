@@ -260,7 +260,7 @@
         </div>
         <!-- NEW VIDEO ICON -->
         <div class="desktop-icon" style="top: 260px; left: 20px;" onmousedown="dragIcon(this, event)" ondblclick="openVideo()">
-            <svg class="icon-svg"><use href="#icon-video"></use></svg><span>evidence.mp4</span>
+            <svg class="icon-svg"><use href="#icon-video"></use></svg><span>evidence_clip.avi</span>
         </div>
     </div>
 
@@ -390,23 +390,23 @@
         </div>
     </div>
 
-    <!-- VIDEO WINDOW -->
+    <!-- VIDEO WINDOW (HEYGEN EMBED) -->
     <div id="win-video" class="window w-[600px] h-[480px] z-30" style="top: 150px; left: 150px; display:none;" onmousedown="focusWindow('win-video')">
         <div class="title-bar" onmousedown="dragWindow('win-video', event)">
-            <div class="flex items-center gap-2"><svg class="icon-sm"><use href="#icon-video"></use></svg><span>Media Player - evidence.mp4</span></div>
+            <div class="flex items-center gap-2"><svg class="icon-sm"><use href="#icon-video"></use></svg><span>Media Player - evidence_clip.avi</span></div>
             <div class="title-bar-controls"><div class="win-btn" onclick="minimizeWindow('win-video')">_</div><div class="win-btn">□</div><div class="win-btn" onclick="closeVideo()">X</div></div>
         </div>
         <div class="menu-bar"><span class="menu-item">F</span>ile <span class="menu-item">V</span>iew <span class="menu-item">P</span>lay <span class="menu-item">H</span>elp</div>
         <div class="flex-1 bg-black p-0 border-2 border-gray-400 inset-panel mx-1 mb-1 relative overflow-hidden flex items-center justify-center">
             
-            <!-- VIDEO PLAYER: Looks for "evidence.mp4" -->
-            <video id="real-video" src="evidence.mp4" class="w-full h-full object-cover" loop controls onerror="handleVideoError(this)"></video>
+            <!-- HEYGEN EMBED -->
+            <iframe id="heygen-iframe" width="100%" height="100%" 
+                src="https://app.heygen.com/embedded-player/a694faa10f76474ea99f23ee1f4b6890" 
+                title="HeyGen video player" frameborder="0" 
+                allow="encrypted-media; fullscreen;" 
+                allowfullscreen>
+            </iframe>
             
-            <!-- CANVAS FALLBACK -->
-            <canvas id="video-canvas" width="600" height="400" class="w-full h-full absolute inset-0" style="display:none;"></canvas>
-            
-            <div class="absolute top-2 left-2 text-green-500 font-mono text-xs pointer-events-none">REC [00:04:22]</div>
-            <div class="absolute bottom-10 left-2 text-red-500 font-mono text-xs animate-pulse pointer-events-none">SIGNAL WEAK</div>
         </div>
         <div class="h-8 bg-gray-200 flex items-center justify-center gap-4 border-t border-white">
             <div class="win-btn w-8 h-6">||</div><div class="win-btn w-8 h-6">></div><div class="win-btn w-8 h-6">[]</div>
@@ -570,63 +570,18 @@
         function openVideo() {
             restoreWindow('win-video');
             document.getElementById('task-video').style.display = 'flex';
-            const vid = document.getElementById('real-video');
-            const canvas = document.getElementById('video-canvas');
-            
-            // Reset to video first, assume user has file
-            if(vid) {
-                vid.style.display = 'block';
-                if(canvas) canvas.style.display = 'none';
-                vid.currentTime = 0; 
-                vid.play().catch(e => {
-                    handleVideoError(vid);
-                });
-            }
         }
 
         function closeVideo() {
             document.getElementById('win-video').style.display = 'none';
             document.getElementById('task-video').style.display = 'none';
-            const vid = document.getElementById('real-video');
-            if (vid) vid.pause();
-            stopVideoNoise();
-        }
-
-        function handleVideoError(videoEl) {
-            videoEl.style.display = 'none';
-            const canvas = document.getElementById('video-canvas');
-            if(canvas) {
-                canvas.style.display = 'block';
-                startVideoNoise();
-            }
-        }
-
-        function startVideoNoise() {
-            const canvas = document.getElementById('video-canvas');
-            if(!canvas) return;
-            const ctx = canvas.getContext('2d');
             
-            if (videoInterval) clearInterval(videoInterval);
-
-            videoInterval = setInterval(() => {
-                const w = canvas.width, h = canvas.height;
-                const idata = ctx.createImageData(w, h);
-                const buffer32 = new Uint32Array(idata.data.buffer);
-                for (let i = 0; i < buffer32.length; i++) {
-                    if (Math.random() < 0.1) buffer32[i] = 0xffffffff;
-                    else buffer32[i] = 0xff000000;
-                }
-                ctx.putImageData(idata, 0, 0);
-                
-                ctx.fillStyle = "rgba(0, 255, 0, 0.7)"; 
-                ctx.font = "20px monospace"; 
-                ctx.fillText("FILE NOT FOUND: evidence.mp4", 50, 50);
-                ctx.fillText("PLEASE CHECK FOLDER", 50, 80);
-            }, 50);
-        }
-
-        function stopVideoNoise() { 
-            if (videoInterval) clearInterval(videoInterval); 
+            // Stop Video playback on close
+            const iframe = document.getElementById('heygen-iframe');
+            if (iframe) {
+                const src = iframe.src;
+                iframe.src = src; // Reseting src stops video
+            }
         }
 
         function sendChat() {

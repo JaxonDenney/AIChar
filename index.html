@@ -260,7 +260,7 @@
         </div>
         <!-- NEW VIDEO ICON -->
         <div class="desktop-icon" style="top: 260px; left: 20px;" onmousedown="dragIcon(this, event)" ondblclick="openVideo()">
-            <svg class="icon-svg"><use href="#icon-video"></use></svg><span>evidence_clip.avi</span>
+            <svg class="icon-svg"><use href="#icon-video"></use></svg><span>evidence.avi</span>
         </div>
     </div>
 
@@ -393,17 +393,19 @@
     <!-- VIDEO WINDOW (YOUTUBE EMBED) -->
     <div id="win-video" class="window w-[600px] h-[480px] z-30" style="top: 150px; left: 150px; display:none;" onmousedown="focusWindow('win-video')">
         <div class="title-bar" onmousedown="dragWindow('win-video', event)">
-            <div class="flex items-center gap-2"><svg class="icon-sm"><use href="#icon-video"></use></svg><span>Media Player - evidence_clip.avi</span></div>
+            <div class="flex items-center gap-2"><svg class="icon-sm"><use href="#icon-video"></use></svg><span>Media Player - Broadcast.avi</span></div>
             <div class="title-bar-controls"><div class="win-btn" onclick="minimizeWindow('win-video')">_</div><div class="win-btn">□</div><div class="win-btn" onclick="closeVideo()">X</div></div>
         </div>
         <div class="menu-bar"><span class="menu-item">F</span>ile <span class="menu-item">V</span>iew <span class="menu-item">P</span>lay <span class="menu-item">H</span>elp</div>
         <div class="flex-1 bg-black p-0 border-2 border-gray-400 inset-panel mx-1 mb-1 relative overflow-hidden flex items-center justify-center">
             
-            <!-- YOUTUBE EMBED -->
+            <!-- YOUTUBE PLAYER -->
+            <!-- REPLACE 'eK380z5ZgTU' WITH YOUR VIDEO ID -->
             <iframe id="youtube-iframe" width="100%" height="100%" 
-                src="https://www.youtube.com/shorts/tQMe_9vuKl0" 
+                src="https://www.youtube.com/embed/tQMe_9vuKl0" 
                 title="YouTube video player" frameborder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                referrerpolicy="strict-origin-when-cross-origin"
                 allowfullscreen>
             </iframe>
             
